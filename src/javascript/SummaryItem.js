@@ -2,8 +2,11 @@
 Ext.define("SummaryItem", {
     extend: 'Ext.data.Model',
     fields: [{
-        name: 'TeamName',
-        type: 'string',
+        name: 'Project',
+        type: 'auto',
+    }, {
+        name: 'ProjectName',
+        type: 'string'
     }, {
         name: 'DeliverableFormattedId',
         type: 'string'
@@ -41,7 +44,8 @@ Ext.define("SummaryItem", {
         var deliverable = firstItem.get('Deliverable');
 
         if (project) {
-            this.set('TeamName', project.Name);
+            this.set('Project', project);
+            this.set('ProjectName', project.Name)
         }
 
         if (deliverable) {

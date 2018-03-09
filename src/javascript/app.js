@@ -93,19 +93,22 @@ Ext.define("CArABU.app.TSApp", {
             store.load().then({
                 scope: this,
                 success: function(records) {
-                    var planEstimateTotal = _.reduce(records, function(accumulator, record) {
-                        return accumulator += record.get('PlanEstimate');
-                    }, 0);
+                    var perTeamPlanEstimateTotals = _.reduce(records, function(accumulator, record) {
+                        var planEstimateTotal = accumulator[record.get('Project').ObjectID] || 0;
+                        planEstimateTotal += record.get('PlanEstimate');
+                        accumulator[record.get('Project').ObjectID] = planEstimateTotal;
+                        return accumulator
+                    }, {});
                     var summaryItems = _.map(store.getGroups(), function(group) {
                         return new SummaryItem(group);
                     });
-                    this.addGrid(summaryItems, planEstimateTotal);
+                    this.addGrid(summaryItems, perTeamPlanEstimateTotals);
                 }
             });
         }
     },
 
-    addGrid: function(data, planEstimateTotal) {
+    addGrid: function(data, perTeamPlanEstimateTotals) {
         var tableArea = this.down('#' + Constants.ID.TABLE_AREA);
         tableArea.removeAll();
         var store = Ext.create('Rally.data.custom.Store', {
@@ -120,7 +123,7 @@ Ext.define("CArABU.app.TSApp", {
             showRowActionsColumn: false,
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
-                dataIndex: 'TeamName'
+                dataIndex: 'ProjectName',
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'DeliverableFormattedId'
@@ -130,8 +133,9 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.PCT_EFFORT,
                 dataIndex: 'PlanEstimate',
-                renderer: function(value) {
-                    return (value / planEstimateTotal * 100).toFixed(2) + '%';
+                renderer: function(value, meta, record) {
+                    var teamPlanEstimateTotal = perTeamPlanEstimateTotals[record.get('Project').ObjectID]
+                    return (value / teamPlanEstimateTotal * 100).toFixed(2) + '%';
                 }
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,

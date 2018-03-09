@@ -1,7 +1,7 @@
 {
   "_comment": "This file is used by grunt",
   "name": "tsabc",
-  "version": "0.2.0",
+  "version": "0.0.2",
   "scripts": {
     "debug": "grunt debug",
     "debug:watch": "nodemon --exec grunt debug",
@@ -9,7 +9,9 @@
     "deploy-pretty:watch": "nodemon --exec grunt deploy-pretty",
     "deploy-debugsdk:watch": "nodemon --exec grunt deploy-debugsdk"
   },
-  "dependencies": {},
+  "dependencies": {
+    "file-saver": "^1.3.3"
+  },
   "devDependencies": {
     "grunt": "~1.0.1",
     "grunt-cli": "1.2.0",
