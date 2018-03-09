@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CATS-Effort By Expense Category-0.0.1</title>
+    <!--  (c) 2017 CA Technologies.  All Rights Reserved. -->
+    <!--  Build Date: Fri Mar 09 2018 19:43:44 GMT+0000 (UTC) -->
+
+    <script type="text/javascript">
+        var APP_BUILD_DATE = "Fri Mar 09 2018 19:43:44 GMT+0000 (UTC)";
+        var ARTIFACT = "";
+        var BUILDER  = "ec2-user";
+        var CHECKSUM = 5046053213;
+    </script>
+
+    <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
+    <!-- our highcharts (needed so that we can add patterns)
+    <script type="text/javascript" src="/apps/2.1/lib/analytics/analytics-all.js"></script>
+    -->
+
+
+    <script type="text/javascript">
+        Rally.onReady(function() {
+            Ext.define("TSUtilities",{singleton:!0,loadWsapiRecords:function(a){var b=Ext.create("Deft.Deferred"),c={model:"Defect",fetch:["ObjectID"]};return Ext.create("Rally.data.wsapi.Store",Ext.Object.merge(c,a)).load({callback:function(a,c,d){d?b.resolve(a):(console.error("Failed: ",c),b.reject("Problem loading: "+c.error.errors.join(". ")))}}),b.promise},loadAStoreWithAPromise:function(a,b){var c=Ext.create("Deft.Deferred");return Ext.create("Rally.data.wsapi.Store",{model:a,fetch:b}).load({callback:function(a,b,d){d?c.resolve(this):(console.error("Failed: ",b),c.reject("Problem loading: "+b.error.errors.join(". ")))}}),c.promise}}),Ext.define("CArABU.technicalservices.Logger",{saveForLater:!1,saveLines:100,logArray:[],constructor:function(a){Ext.apply(this,a)},setSaveForLater:function(a){this.saveForLater=a},log:function(a){var b="[ "+Ext.util.Format.date(new Date,"Y-m-d H:i:s.u")+" ]",c=[];c=Ext.Array.push(c,[b]),c=Ext.Array.push(c,Ext.Array.slice(arguments,0)),this.saveForLater&&(this.logArray||(this.logArray=[]),this.logArray.push(c.join(" ")),this.logArray.length>this.saveLines&&this.logArray.shift()),window.console&&console.log.apply(console,c)},getLogText:function(){return this.logArray&&0!==this.logArray.length?this.logArray.join("<br/>"):"-- no log --"},displayLog:function(){var a=this.getLogText();this.popup=Ext.create("Rally.ui.dialog.Dialog",{width:Ext.getBody().getWidth()-20,height:Ext.getBody().getHeight()-20,closable:!0,title:"Log",autoShow:!0,layout:"border",defaults:{layout:"fit",width:"50%",border:!1},items:[{region:"center",xtype:"container",html:a,autoScroll:!0}]})}}),Ext.define("Rally.technicalservices.InfoLink",{extend:"Rally.ui.dialog.Dialog",alias:"widget.tsinfolink",informationHtml:null,title:"Build Information",defaults:{padding:5,margin:5},closable:!0,draggable:!0,autoShow:!0,width:350,informationalConfig:null,showLog:!1,logger:null,items:[{xtype:"container",itemId:"information"},{xtype:"container",itemId:"button_box"}],initComponent:function(){Ext.id(this);this.title="<span class='icon-help'> </span>"+this.title,this.callParent(arguments)},_generateChecksum:function(a){var b,c=305419896;for(a=a.replace(/var CHECKSUM = .*;/,""),a=a.replace(/var BUILDER  = .*;/,""),a=a.replace(/\s/g,""),b=0;b<a.length;b++)c+=a.charCodeAt(b)*b;return c},_checkChecksum:function(a){var b=Ext.create("Deft.Deferred"),c=this;return Ext.Ajax.request({url:document.URL,params:{id:1},success:function(a){if(text=a.responseText,CHECKSUM){var d=c._generateChecksum(text);if(CHECKSUM!==d)return void b.resolve(!1)}b.resolve(!0)}}),b.promise},_addToContainer:function(a){var b=Ext.apply({xtype:"container",height:200,overflowY:!0},this.informationalConfig);a.add(b)},afterRender:function(){var a=Rally.getApp();if(!Ext.isEmpty(this.informationalConfig)){var b=this.down("#information");this._addToContainer(b)}this.showLog&&this.logger&&this.down("#button_box").add({xtype:"rallybutton",text:"Show Log",listeners:{scope:this,click:function(){this.logger.displayLog()}}}),a.isExternal()?this.addDocked({xtype:"container",cls:"build-info",padding:2,dock:"bottom",html:"... Running externally"}):this._checkChecksum(a).then({scope:this,success:function(a){a||this.addDocked({xtype:"container",cls:"build-info",dock:"bottom",padding:2,html:'<span class="icon-warning"> </span>Checksums do not match'})},failure:function(a){console.log("oops:",a)}}),this.callParent(arguments)},beforeRender:function(){if(this.callParent(arguments),this.informationHtml&&this.addDocked({xtype:"component",componentCls:"intro-panel",padding:2,html:this.informationHtml,dock:"bottom"}),this.addDocked({xtype:"container",cls:"build-info",padding:2,dock:"bottom",html:"This app was created by the CA AC Technical Services Team."}),APP_BUILD_DATE){var a=Ext.String.format("Built on: {0} <br/>Built by: {1}",APP_BUILD_DATE,BUILDER);ARTIFACT&&(a=a+"<br/>Source artifact: "+ARTIFACT),this.addDocked({xtype:"container",cls:"build-info",padding:2,dock:"top",html:a})}}}),Ext.define("Constants",{statics:{ID:{ACCEPTED_START_DATE:"ACCEPTED_START_DATE",ACCEPTED_END_DATE:"ACCEPTED_END_DATE",USER_STORY_STORE:"USER_STORY_STORE",TABLE_AREA:"TABLE_AREA"},LABEL:{ACCEPTED_START_DATE:"Start Date",ACCEPTED_END_DATE:"End Date",TEAM_NAME:"Team",DELIVERABLE_ID:"Deliverable",EXPENSE_CATEGORY:"Expense Category",PCT_EFFORT:"% of Effort",DELIVERABLE_NAME:"Deliverable Name",PI_PROJECT_ID:"Project",PI_PROJECT_NAME:"Project Name",INITIATIVE_ID:"Initiative",INITIATIVE_NAME:"Initiative Name",DELIVERABLE_STATE:"Closed Deliverable"},USER_STORY_FIELDS:["ObjectID","FormattedID","Name","AcceptedDate","Deliverable","c_ExpenseCategory","Parent","State","Owner","PlanEstimate","Project"]}}),Ext.define("SummaryItem",{extend:"Ext.data.Model",fields:[{name:"TeamName",type:"string"},{name:"DeliverableFormattedId",type:"string"},{name:"DeliverableName",type:"string"},{name:"DeliverableState",type:"string"},{name:"ExpenseCategory",type:"string"},{name:"PlanEstimate",type:"float"},{name:"PortfolioItem/Project_FormattedId",type:"string"},{name:"PortfolioItem/Project_Name",type:"string"},{name:"InitiativeFormattedId",type:"string"},{name:"InitiativeName",type:"string"}],constructor:function(a){this.callParent(arguments);var b=a.children[0],c=b.get("Project"),d=b.get("Deliverable");if(c&&this.set("TeamName",c.Name),d){this.set("DeliverableFormattedId",d.FormattedID),this.set("DeliverableName",d.Name),d.State&&this.set("DeliverableState",d.State.Name);var e=d.Parent;if(e){this.set("PortfolioItem/Project_FormattedId",e.FormattedID),this.set("PortfolioItem/Project_Name",e.Name);var f=Ext.create("Rally.data.wsapi.Store",{model:e._type,fetch:["FormattedID","Name","Parent"],filters:[{property:"ObjectID",value:e.ObjectID}],autoLoad:!1,context:{project:null}});f.load().then({scope:this,success:function(a){if(a.length){var b=a[0].get("Parent");b&&(this.set("InitiativeFormattedId",b.FormattedID),this.set("InitiativeName",b.Name))}}})}}this.set("ExpenseCategory",b.get("c_ExpenseCategory"));var g=_.reduce(a.children,function(a,b){return a+=b.get("PlanEstimate")},0);this.set("PlanEstimate",g)}}),Ext.define("CArABU.app.TSApp",{extend:"Rally.app.App",componentCls:"app",defaults:{margin:10},layout:"vbox",integrationHeaders:{name:"CArABU.app.TSApp"},logger:new CArABU.technicalservices.Logger,items:[{xtype:"container",layout:{type:"hbox"},items:[{xtype:"rallydatefield",itemId:Constants.ID.ACCEPTED_START_DATE,fieldLabel:Constants.LABEL.ACCEPTED_START_DATE,stateful:!0,stateId:Constants.ID.ACCEPTED_START_DATE},{xtype:"rallydatefield",itemId:Constants.ID.ACCEPTED_END_DATE,fieldLabel:Constants.LABEL.ACCEPTED_END_DATE,padding:"0 0 0 20",stateful:!0,stateId:Constants.ID.ACCEPTED_END_DATE}]},{xtype:"container",itemId:Constants.ID.TABLE_AREA,layout:"hbox"}],startDate:void 0,endDate:void 0,launch:function(){this.setLoading("Loading stuff...");var a=this.down("#"+Constants.ID.ACCEPTED_START_DATE),b=this.down("#"+Constants.ID.ACCEPTED_END_DATE);this.startDate=a.getValue(),this.endDate=b.getValue(),this.loadData(),a.on("change",this.onStartDateChange,this),b.on("change",this.onEndDateChange,this),this.setLoading(!1)},onStartDateChange:function(a,b){this.startDate!=b&&(this.startDate=b,this.loadData())},onEndDateChange:function(a,b){this.endDate!=b&&(this.endDate=b,this.loadData())},loadData:function(){if(this.startDate&&this.endDate){var a=Ext.create("Rally.data.wsapi.Store",{storeId:Constants.ID.USER_STORY_STORE,model:"HierarchicalRequirement",autoLoad:!1,fetch:Constants.USER_STORY_FIELDS,filters:[{property:"AcceptedDate",operator:">=",value:this.startDate},{property:"AcceptedDate",operator:"<=",value:this.endDate}],limit:1/0,getGroupString:this.getGroupString});a.load().then({scope:this,success:function(b){var c=_.reduce(b,function(a,b){return a+=b.get("PlanEstimate")},0),d=_.map(a.getGroups(),function(a){return new SummaryItem(a)});this.addGrid(d,c)}})}},addGrid:function(a,b){var c=this.down("#"+Constants.ID.TABLE_AREA);c.removeAll();var d=Ext.create("Rally.data.custom.Store",{data:a,model:SummaryItem});c.add({xtype:"rallygrid",store:d,width:.9*this.getWidth(),enableEditing:!1,showRowActionsColumn:!1,columnCfgs:[{text:Constants.LABEL.TEAM_NAME,dataIndex:"TeamName"},{text:Constants.LABEL.DELIVERABLE_ID,dataIndex:"DeliverableFormattedId"},{text:Constants.LABEL.EXPENSE_CATEGORY,dataIndex:"ExpenseCategory"},{text:Constants.LABEL.PCT_EFFORT,dataIndex:"PlanEstimate",renderer:function(a){return(a/b*100).toFixed(2)+"%"}},{text:Constants.LABEL.DELIVERABLE_NAME,dataIndex:"DeliverableName"},{text:Constants.LABEL.PI_PROJECT_ID,dataIndex:"PortfolioItem/Project_FormattedId"},{text:Constants.LABEL.PI_PROJECT_NAME,dataIndex:"PortfolioItem/Project_Name"},{text:Constants.LABEL.INITIATIVE_ID,dataIndex:"InitiativeFormattedId"},{text:Constants.LABEL.INITIATIVE_NAME,dataIndex:"InitiativeName"},{text:Constants.LABEL.DELIVERABLE_STATE,dataIndex:"DeliverableState"}]})},getGroupString:function(a){var b=a.get("Project"),c=a.get("Deliverable"),d=a.get("c_ExpenseCategory")||"None",e=b?b.ObjectID:"None",f=c?c.ObjectID:"None";return[e,f,d].join(":")},getSettingsFields:function(){return[]},getOptions:function(){var a=[{text:"About...",handler:this._launchInfo,scope:this}];return a},_launchInfo:function(){this.about_dialog&&this.about_dialog.destroy(),this.about_dialog=Ext.create("Rally.technicalservices.InfoLink",{showLog:this.getSetting("saveLog"),logger:this.logger})},isExternal:function(){return"undefined"==typeof this.getAppId()}});
+
+               Rally.launchApp('CArABU.app.TSApp', {
+                   name: 'Effort By Expense Category'
+               });
+        });
+    </script>
+
+    <style type="text/css">
+
+.app {
+}
+.tsinfolink {
+    position:absolute;
+    right:0px;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    text-align: center;
+    color: white;
+    background: #C0C0C0;
+    border-style: solid;
+    border-width: 1px;
+    margin-top: 25px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+    </style>
+
+</head>
+<body></body>
+</html>
