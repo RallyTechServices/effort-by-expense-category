@@ -6,6 +6,8 @@ Ext.define("Constants", {
             ACCEPTED_END_DATE: 'ACCEPTED_END_DATE',
             USER_STORY_STORE: 'USER_STORY_STORE',
             TABLE_AREA: 'TABLE_AREA',
+            EXPORT: 'EXPORT',
+            SUMMARY_GRID: 'SUMMARY_GRID'
         },
         LABEL: {
             ACCEPTED_START_DATE: "Start Date",
@@ -19,7 +21,9 @@ Ext.define("Constants", {
             PI_PROJECT_NAME: 'Project Name',
             INITIATIVE_ID: 'Initiative',
             INITIATIVE_NAME: 'Initiative Name',
-            DELIVERABLE_STATE: 'Closed Deliverable'
+            DELIVERABLE_STATE: 'Closed Deliverable',
+            EXPORT: 'Export',
+            EXPORT_FILENAME: 'export.csv'
         },
         USER_STORY_FIELDS: [
             'ObjectID', 'FormattedID', 'Name', 'AcceptedDate', 'Deliverable', 'c_ExpenseCategory',

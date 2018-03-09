@@ -3,7 +3,10 @@ Ext.define("CArABU.app.TSApp", {
     extend: 'Rally.app.App',
     componentCls: 'app',
     defaults: { margin: 10 },
-    layout: 'vbox',
+    layout: {
+        type: 'vbox',
+        align: 'stretch'
+    },
     integrationHeaders: {
         name: "CArABU.app.TSApp"
     },
@@ -13,9 +16,11 @@ Ext.define("CArABU.app.TSApp", {
         xtype: 'container',
         layout: {
             type: 'hbox',
+            pack: 'end',
         },
         items: [{
             xtype: 'rallydatefield',
+            region: 'west',
             itemId: Constants.ID.ACCEPTED_START_DATE,
             fieldLabel: Constants.LABEL.ACCEPTED_START_DATE,
             stateful: true,
@@ -27,18 +32,29 @@ Ext.define("CArABU.app.TSApp", {
             padding: '0 0 0 20',
             stateful: true,
             stateId: Constants.ID.ACCEPTED_END_DATE
+        }, {
+            xtype: 'container',
+            region: 'center',
+            flex: 1,
+        }, {
+            xtype: 'rallybutton',
+            itemId: Constants.ID.EXPORT,
+            text: Constants.LABEL.EXPORT,
+            disabled: true
         }],
     }, {
         xtype: 'container',
         itemId: Constants.ID.TABLE_AREA,
-        layout: 'hbox',
+        layout: {
+            type: 'vbox',
+            align: 'stretch'
+        }
     }],
 
     startDate: undefined,
     endDate: undefined,
 
     launch: function() {
-        this.setLoading("Loading stuff...");
         // Get references to the date controls
         var start = this.down('#' + Constants.ID.ACCEPTED_START_DATE);
         var end = this.down('#' + Constants.ID.ACCEPTED_END_DATE);
@@ -46,13 +62,24 @@ Ext.define("CArABU.app.TSApp", {
         // Get their current values from their saved state (this happens before app launch is called)
         this.startDate = start.getValue();
         this.endDate = end.getValue();
-        this.loadData();
 
         // Listen for user changes to the dates
         start.on('change', this.onStartDateChange, this);
         end.on('change', this.onEndDateChange, this);
 
-        this.setLoading(false);
+        // Add event handler for export button
+        this.down('#' + Constants.ID.EXPORT).on('click', this.onExport, this);
+
+        this.loadData();
+    },
+
+    onExport: function(button) {
+        button.setDisabled(true);
+        CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, this.down('#' + Constants.ID.SUMMARY_GRID))
+            .then(function(csv) {
+                CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, Constants.LABEL.EXPORT_FILENAME);
+                button.setDisabled(false);
+            });
     },
 
     onStartDateChange: function(datePicker, newDate) {
@@ -71,6 +98,7 @@ Ext.define("CArABU.app.TSApp", {
 
     loadData: function() {
         if (this.startDate && this.endDate) {
+            this.setLoading(true);
             var store = Ext.create('Rally.data.wsapi.Store', {
                 storeId: Constants.ID.USER_STORY_STORE,
                 model: 'HierarchicalRequirement',
@@ -103,9 +131,15 @@ Ext.define("CArABU.app.TSApp", {
                         return new SummaryItem(group);
                     });
                     this.addGrid(summaryItems, perTeamPlanEstimateTotals);
+                    this.setLoading(false);
                 }
             });
         }
+    },
+
+    setLoading: function(disabled) {
+        this.callParent(arguments);
+        this.down('#' + Constants.ID.EXPORT).setDisabled(disabled);
     },
 
     addGrid: function(data, perTeamPlanEstimateTotals) {
@@ -117,13 +151,15 @@ Ext.define("CArABU.app.TSApp", {
         });
         tableArea.add({
             xtype: 'rallygrid',
+            itemId: Constants.ID.SUMMARY_GRID,
             store: store,
-            width: this.getWidth() * .9,
+            //width: this.getWidth(),
             enableEditing: false,
             showRowActionsColumn: false,
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'ProjectName',
+                flex: 1,
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'DeliverableFormattedId'
@@ -156,7 +192,7 @@ Ext.define("CArABU.app.TSApp", {
                 text: Constants.LABEL.DELIVERABLE_STATE,
                 dataIndex: 'DeliverableState'
             }]
-        })
+        });
     },
 
     getGroupString: function(instance) {
