@@ -153,7 +153,6 @@ Ext.define("CArABU.app.TSApp", {
             xtype: 'rallygrid',
             itemId: Constants.ID.SUMMARY_GRID,
             store: store,
-            //width: this.getWidth(),
             enableEditing: false,
             showRowActionsColumn: false,
             columnCfgs: [{
