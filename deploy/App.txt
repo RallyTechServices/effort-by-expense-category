@@ -7,13 +7,13 @@
             0.0.1
     </title>
     <!--  (c) 2017 CA Technologies.  All Rights Reserved. -->
-    <!--  Build Date: Thu Mar 08 2018 21:34:38 GMT+0000 (UTC) -->
+    <!--  Build Date: Fri Mar 09 2018 00:19:41 GMT+0000 (UTC) -->
 
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Mar 08 2018 21:34:38 GMT+0000 (UTC)";
+        var APP_BUILD_DATE = "Fri Mar 09 2018 00:19:41 GMT+0000 (UTC)";
         var ARTIFACT = "";
         var BUILDER = "ec2-user";
-        var CHECKSUM = "3257937511";
+        var CHECKSUM = "5951742279";
     </script>
 
     <script type="text/javascript" src="https://us1.rallydev.com/apps/2.1/sdk-debug.js"></script>
@@ -335,21 +335,95 @@ Ext.define("Constants", {
         ID: {
             ACCEPTED_START_DATE: 'ACCEPTED_START_DATE',
             ACCEPTED_END_DATE: 'ACCEPTED_END_DATE',
+            USER_STORY_STORE: 'USER_STORY_STORE',
+            TABLE_AREA: 'TABLE_AREA',
         },
         LABEL: {
             ACCEPTED_START_DATE: "Start Date",
-            ACCEPTED_END_DATE: "End Date"
-        }
+            ACCEPTED_END_DATE: "End Date",
+            TEAM_NAME: 'Team',
+            DELIVERABLE_ID: 'Deliverable'
+        },
+        USER_STORY_FIELDS: [
+            'ObjectID', 'FormattedID', 'Name', 'AcceptedDate', 'Deliverable', 'c_ExpenseCategory',
+            'Parent',
+            'State',
+            'Owner',
+            'PlanEstimate',
+            'Project'
+        ]
     }
 })
 
 /* global Ext */
 Ext.define("SummaryItem", {
     extend: 'Ext.data.Model',
-    fields: []
+    fields: [{
+        name: 'TeamName',
+        type: 'string',
+    }, {
+        name: 'DeliverableFormattedId',
+        type: 'string'
+    }, {
+        name: 'DeliverableName',
+        type: 'string'
+    }, {
+        name: 'DeliverableState',
+        type: 'string'
+    }, {
+        name: 'ExpenseCategory',
+        type: 'string'
+    }, {
+        name: 'PercentEffort',
+        type: 'float'
+    }, {
+        name: 'PortfolioItem/Project_FormattedId',
+        type: 'string'
+    }, {
+        name: 'PortfolioItem/Project_Name',
+        type: 'string'
+    }, {
+        name: 'InitiativeFormattedId',
+        type: 'string'
+    }, {
+        name: 'InitiativeName',
+        type: 'string'
+    }],
+    constructor: function(group) {
+        this.callParent(arguments);
+
+        var firstItem = group.children[0];
+        var project = firstItem.get('Project');
+        var deliverable = firstItem.get('Deliverable');
+
+        if (project) {
+            this.set('TeamName', project.Name);
+        }
+
+        if (deliverable) {
+            this.set('DeliverableFormattedId', deliverable.FormattedID);
+            this.set('DeliverableName', deliverable.Name);
+            this.set('DeliverableState', deliverable.State);
+
+            var portfolioItem_Project = deliverable.Parent;
+            if (portfolioItem_Project) {
+                this.set('PortfolioItem/Project_FormattedId', portfolioItem_Project.FormattedID);
+                this.set('PortfolioItem/Project_Name', portfolioItem_Project.Name);
+                var initiative = portfolioItem_Project.Parent;
+                if (initiative) {
+                    this.set('InitiativeFormattedId', initiative.FormattedID);
+                    this.set('InitiativeName', initiative.Name);
+                }
+            }
+        }
+
+        this.set('ExpenseCategory', firstItem.get('c_ExpenseCategory'));
+        this.set('PercentEffort', 'TODO');
+
+    }
 });
 
-/* global Ext Deft TSUtilities CArABU Constants */
+/* global Ext Deft TSUtilities CArABU Constants SummaryItem _ */
 Ext.define("CArABU.app.TSApp", {
     extend: 'Rally.app.App',
     componentCls: 'app',
@@ -378,7 +452,13 @@ Ext.define("CArABU.app.TSApp", {
             padding: '0 0 0 20',
             stateful: true,
             stateId: Constants.ID.ACCEPTED_END_DATE
-        }]
+        }],
+    }, {
+        xtype: 'container',
+        itemId: Constants.ID.TABLE_AREA,
+        layout: 'vbox',
+        width: 500,
+        height: 500,
     }],
 
     startDate: undefined,
@@ -393,6 +473,7 @@ Ext.define("CArABU.app.TSApp", {
         // Get their current values from their saved state (this happens before app launch is called)
         this.startDate = start.getValue();
         this.endDate = end.getValue();
+        this.loadData();
 
         // Listen for user changes to the dates
         start.on('change', this.onStartDateChange, this);
@@ -402,15 +483,83 @@ Ext.define("CArABU.app.TSApp", {
     },
 
     onStartDateChange: function(datePicker, newDate) {
-        this.startDate = newDate;
+        if (this.startDate != newDate) {
+            this.startDate = newDate;
+            this.loadData();
+        }
     },
 
     onEndDateChange: function(datePicker, newDate) {
-        this.endDate = newDate;
+        if (this.endDate != newDate) {
+            this.endDate = newDate;
+            this.loadData();
+        }
     },
 
-    showGrids: function() {
-        //if (this)
+    loadData: function() {
+        if (this.startDate && this.endDate) {
+            var store = Ext.create('Rally.data.wsapi.Store', {
+                storeId: Constants.ID.USER_STORY_STORE,
+                model: 'HierarchicalRequirement',
+                autoLoad: false,
+                fetch: Constants.USER_STORY_FIELDS,
+                filters: [{
+                        property: 'AcceptedDate',
+                        operator: '>=',
+                        value: this.startDate
+                    },
+                    {
+                        property: 'AcceptedDate',
+                        operator: '<=',
+                        value: this.endDate
+                    }
+                ],
+                limit: Infinity,
+                getGroupString: this.getGroupString
+            });
+            store.load().then({
+                scope: this,
+                success: function(records) {
+                    console.log(records);
+                    console.log(store);
+                    var summaryItems = _.map(store.getGroups(), function(group) {
+                        return new SummaryItem(group);
+                    });
+                    this.addGrid(summaryItems);
+                }
+            });
+        }
+    },
+
+    addGrid: function(data) {
+        var tableArea = this.down('#' + Constants.ID.TABLE_AREA);
+        tableArea.removeAll();
+        var store = Ext.create('Rally.data.Store', {
+            data: data,
+            model: SummaryItem
+        });
+        tableArea.add({
+            xtype: 'rallygrid',
+            store: store,
+            width: 400,
+            height: 400,
+            columnCfgs: [{
+                text: Constants.LABEL.TEAM_NAME,
+                dataIndex: 'TeamName'
+            }, {
+                text: Constants.LABEL.DELIVERABLE_ID,
+                dataIndex: 'DeliverableFormattedId'
+            }]
+        })
+    },
+
+    getGroupString: function(instance) {
+        var project = instance.get('Project');
+        var deliverable = instance.get('Deliverable');
+        var expenseCategory = instance.get('c_ExpenseCategory') || 'None';
+        var projectOid = project ? project.ObjectID : 'None';
+        var deliverableOid = deliverable ? deliverable.ObjectID : 'None';
+        return [projectOid, deliverableOid, expenseCategory].join(':');
     },
 
     getSettingsFields: function() {
