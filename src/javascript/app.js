@@ -31,9 +31,7 @@ Ext.define("CArABU.app.TSApp", {
     }, {
         xtype: 'container',
         itemId: Constants.ID.TABLE_AREA,
-        layout: 'vbox',
-        width: 500,
-        height: 500,
+        layout: 'hbox',
     }],
 
     startDate: undefined,
@@ -95,35 +93,64 @@ Ext.define("CArABU.app.TSApp", {
             store.load().then({
                 scope: this,
                 success: function(records) {
-                    console.log(records);
-                    console.log(store);
+                    var planEstimateTotal = _.reduce(records, function(accumulator, record) {
+                        return accumulator += record.get('PlanEstimate');
+                    }, 0);
                     var summaryItems = _.map(store.getGroups(), function(group) {
                         return new SummaryItem(group);
                     });
-                    this.addGrid(summaryItems);
+                    this.addGrid(summaryItems, planEstimateTotal);
                 }
             });
         }
     },
 
-    addGrid: function(data) {
+    addGrid: function(data, planEstimateTotal) {
         var tableArea = this.down('#' + Constants.ID.TABLE_AREA);
         tableArea.removeAll();
-        var store = Ext.create('Rally.data.Store', {
+        var store = Ext.create('Rally.data.custom.Store', {
             data: data,
             model: SummaryItem
         });
         tableArea.add({
             xtype: 'rallygrid',
             store: store,
-            width: 400,
-            height: 400,
+            width: this.getWidth() * .9,
+            enableEditing: false,
+            showRowActionsColumn: false,
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'TeamName'
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'DeliverableFormattedId'
+            }, {
+                text: Constants.LABEL.EXPENSE_CATEGORY,
+                dataIndex: 'ExpenseCategory'
+            }, {
+                text: Constants.LABEL.PCT_EFFORT,
+                dataIndex: 'PlanEstimate',
+                renderer: function(value) {
+                    return (value / planEstimateTotal * 100).toFixed(2) + '%';
+                }
+            }, {
+                text: Constants.LABEL.DELIVERABLE_NAME,
+                dataIndex: 'DeliverableName'
+            }, {
+                text: Constants.LABEL.PI_PROJECT_ID,
+                dataIndex: 'PortfolioItem/Project_FormattedId'
+            }, {
+                text: Constants.LABEL.PI_PROJECT_NAME,
+                dataIndex: 'PortfolioItem/Project_Name',
+            }, {
+                text: Constants.LABEL.INITIATIVE_ID,
+                dataIndex: 'InitiativeFormattedId',
+            }, {
+                text: Constants.LABEL.INITIATIVE_NAME,
+                dataIndex: 'InitiativeName'
+            }, {
+                text: Constants.LABEL.DELIVERABLE_STATE,
+                dataIndex: 'DeliverableState'
             }]
         })
     },
