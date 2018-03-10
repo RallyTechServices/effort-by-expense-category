@@ -43,12 +43,26 @@ Ext.define("CArABU.app.TSApp", {
             disabled: true
         }],
     }, {
-        xtype: 'container',
-        itemId: Constants.ID.TABLE_AREA,
-        layout: {
-            type: 'vbox',
-            align: 'stretch'
-        }
+        xtype: 'tabpanel',
+        itemId: Constants.ID.TAB_PANEL,
+        plain: true,
+        items: [{
+            xtype: 'container',
+            title: Constants.LABEL.SUMMARY_AREA,
+            itemId: Constants.ID.SUMMARY_AREA,
+            layout: {
+                type: 'vbox',
+                align: 'stretch'
+            }
+        }, {
+            xtype: 'container',
+            title: Constants.LABEL.DETAILS_AREA,
+            itemId: Constants.ID.DETAILS_AREA,
+            layout: {
+                type: 'vbox',
+                align: 'stretch'
+            }
+        }]
     }],
 
     startDate: undefined,
@@ -75,9 +89,12 @@ Ext.define("CArABU.app.TSApp", {
 
     onExport: function(button) {
         button.setDisabled(true);
-        CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, this.down('#' + Constants.ID.SUMMARY_GRID))
+        // Export the data from the grid on the active tab. Use the tab title as the export filename.
+        var activeTab = this.down('#' + Constants.ID.TAB_PANEL).getActiveTab();
+        var activeGrid = activeTab.down('rallygrid');
+        CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, activeGrid)
             .then(function(csv) {
-                CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, Constants.LABEL.EXPORT_FILENAME);
+                CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
                 button.setDisabled(false);
             });
     },
@@ -130,7 +147,8 @@ Ext.define("CArABU.app.TSApp", {
                     var summaryItems = _.map(store.getGroups(), function(group) {
                         return new SummaryItem(group);
                     });
-                    this.addGrid(summaryItems, perTeamPlanEstimateTotals);
+                    this.addSummaryGrid(summaryItems, perTeamPlanEstimateTotals);
+                    this.addDetailsGrid(summaryItems);
                     this.setLoading(false);
                 }
             });
@@ -142,8 +160,8 @@ Ext.define("CArABU.app.TSApp", {
         this.down('#' + Constants.ID.EXPORT).setDisabled(disabled);
     },
 
-    addGrid: function(data, perTeamPlanEstimateTotals) {
-        var tableArea = this.down('#' + Constants.ID.TABLE_AREA);
+    addSummaryGrid: function(data, perTeamPlanEstimateTotals) {
+        var tableArea = this.down('#' + Constants.ID.SUMMARY_AREA);
         tableArea.removeAll();
         var store = Ext.create('Rally.data.custom.Store', {
             data: data,
@@ -151,7 +169,6 @@ Ext.define("CArABU.app.TSApp", {
         });
         tableArea.add({
             xtype: 'rallygrid',
-            itemId: Constants.ID.SUMMARY_GRID,
             store: store,
             enableEditing: false,
             showRowActionsColumn: false,
@@ -191,6 +208,82 @@ Ext.define("CArABU.app.TSApp", {
                 text: Constants.LABEL.DELIVERABLE_STATE,
                 dataIndex: 'DeliverableState'
             }]
+        });
+    },
+
+    addDetailsGrid: function(data) {
+        var tableArea = this.down('#' + Constants.ID.DETAILS_AREA);
+        var details = _.reduce(data, function(accumulator, datum) {
+            _.forEach(datum.get('Children'), function(child) {
+                child.set('SummaryItem', datum.data);
+                accumulator.push(child);
+            });
+            return accumulator;
+        }, []);
+        tableArea.removeAll();
+        var store = Ext.create('Rally.data.custom.Store', {
+            data: details,
+        });
+        tableArea.add({
+            xtype: 'rallygrid',
+            store: store,
+            enableEditing: false,
+            showRowActionsColumn: false,
+            columnCfgs: [{
+                    text: Constants.LABEL.TEAM_NAME,
+                    xtype: 'templatecolumn',
+                    tpl: '{SummaryItem.Project.Name}',
+                    flex: 1
+                }, {
+                    text: Constants.LABEL.USER_STORY_ID,
+                    dataIndex: 'FormattedID'
+                }, {
+                    text: Constants.LABEL.PARENT,
+                    xtype: 'templatecolumn',
+                    tpl: '{Parent.FormattedID}'
+                }, {
+                    text: Constants.LABEL.DELIVERABLE_ID,
+                    xtype: 'templatecolumn',
+                    tpl: '{SummaryItem.DeliverableFormattedId}'
+                }, {
+                    text: Constants.LABEL.DELIVERABLE_NAME,
+                    xtype: 'templatecolumn',
+                    tpl: '{SummaryItem.DeliverableName}'
+                }, {
+                    text: Constants.LABEL.EXPENSE_CATEGORY,
+                    dataIndex: 'c_ExpenseCategory'
+                },
+                {
+                    text: Constants.LABEL.PI_PROJECT_ID,
+                    xtype: 'templatecolumn',
+                    tpl: '{SummaryItem.PiProject.FormattedId}'
+                },
+                /* {
+                                    text: Constants.LABEL.PI_PROJECT_NAME,
+                                    xtype: 'templatecolumn',
+                                    tpl: '{SummaryItem.PiProject.Name}'
+                                }, {
+                                    text: Constants.LABEL.INITIATIVE_ID,
+                                    xtype: 'templatecolumn',
+                                    tpl: '{SummaryItem.Initiative.FormattedId}'
+                                }, {
+                                    text: Constants.LABEL.INITIATIVE_NAME,
+                                    xtype: 'templatecolumn',
+                                    tpl: '{SummaryItem.Initiative.Name}'
+                                }, {
+                                    text: Constants.LABEL.DELIVERABLE_STATE,
+                                    xtype: 'templatecolumn',
+                                    tpl: '{SummaryItem.Deliverable.State.Name}'
+                                }, {
+                                    text: Constants.LABEL.OWNER,
+                                    xtype: 'templatecolumn',
+                                    tpl: '{Owner.Name}'
+                                }, */
+                {
+                    text: Constants.LABEL.ACCEPTED_DATE,
+                    dataIndex: 'AcceptedDate'
+                }
+            ]
         });
     },
 
