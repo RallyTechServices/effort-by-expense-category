@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CATS-Effort By Expense Category-0.0.3</title>
+    <title>CATS-Effort By Expense Category-0.0.4</title>
     <!--  (c) 2017 CA Technologies.  All Rights Reserved. -->
-    <!--  Build Date: Sat Mar 10 2018 00:03:44 GMT+0000 (UTC) -->
+    <!--  Build Date: Sat Mar 10 2018 00:05:22 GMT+0000 (UTC) -->
 
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Sat Mar 10 2018 00:03:44 GMT+0000 (UTC)";
+        var APP_BUILD_DATE = "Sat Mar 10 2018 00:05:22 GMT+0000 (UTC)";
         var ARTIFACT = "";
         var BUILDER  = "ec2-user";
-        var CHECKSUM = 18717195804;
+        var CHECKSUM = 18717195072;
     </script>
 
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
