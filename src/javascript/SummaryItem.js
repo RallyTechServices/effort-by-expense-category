@@ -1,9 +1,19 @@
 /* global Ext _ */
 Ext.define("SummaryItem", {
     extend: 'Ext.data.Model',
+    // TODO Refactor to simply store PIs then use template renderers
     fields: [{
         name: 'Project',
         type: 'auto',
+    }, {
+        name: 'PiProject',
+        type: 'auto'
+    }, {
+        name: 'Deliverable',
+        type: 'auto'
+    }, {
+        name: 'Initiative',
+        type: 'auto'
     }, {
         name: 'ProjectName',
         type: 'string'
@@ -34,6 +44,9 @@ Ext.define("SummaryItem", {
     }, {
         name: 'InitiativeName',
         type: 'string'
+    }, {
+        name: 'Children',
+        type: 'auto'
     }],
 
     constructor: function(group) {
@@ -43,12 +56,15 @@ Ext.define("SummaryItem", {
         var project = firstItem.get('Project');
         var deliverable = firstItem.get('Deliverable');
 
+        this.set('Children', group.children);
+
         if (project) {
             this.set('Project', project);
             this.set('ProjectName', project.Name)
         }
 
         if (deliverable) {
+            this.set('Deliverable', deliverable);
             this.set('DeliverableFormattedId', deliverable.FormattedID);
             this.set('DeliverableName', deliverable.Name);
             if (deliverable.State) {
@@ -57,6 +73,7 @@ Ext.define("SummaryItem", {
 
             var portfolioItem_Project = deliverable.Parent;
             if (portfolioItem_Project) {
+                this.set('PiProject', portfolioItem_Project);
                 this.set('PortfolioItem/Project_FormattedId', portfolioItem_Project.FormattedID);
                 this.set('PortfolioItem/Project_Name', portfolioItem_Project.Name);
 
@@ -79,6 +96,7 @@ Ext.define("SummaryItem", {
                         if (records.length) {
                             var initiative = records[0].get('Parent');
                             if (initiative) {
+                                this.set('Initiative', initiative);
                                 this.set('InitiativeFormattedId', initiative.FormattedID);
                                 this.set('InitiativeName', initiative.Name);
                             }

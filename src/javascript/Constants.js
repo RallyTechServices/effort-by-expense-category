@@ -5,9 +5,10 @@ Ext.define("Constants", {
             ACCEPTED_START_DATE: 'ACCEPTED_START_DATE',
             ACCEPTED_END_DATE: 'ACCEPTED_END_DATE',
             USER_STORY_STORE: 'USER_STORY_STORE',
-            TABLE_AREA: 'TABLE_AREA',
+            SUMMARY_AREA: 'SUMMARY_AREA',
+            DETAILS_AREA: 'DETAILS_AREA',
             EXPORT: 'EXPORT',
-            SUMMARY_GRID: 'SUMMARY_GRID'
+            TAB_PANEL: 'TAB_PANEL',
         },
         LABEL: {
             ACCEPTED_START_DATE: "Start Date",
@@ -23,7 +24,12 @@ Ext.define("Constants", {
             INITIATIVE_NAME: 'Initiative Name',
             DELIVERABLE_STATE: 'Closed Deliverable',
             EXPORT: 'Export',
-            EXPORT_FILENAME: 'export.csv'
+            SUMMARY_AREA: 'Summary',
+            DETAILS_AREA: 'Details',
+            USER_STORY_ID: 'User Story',
+            PARENT: 'User Story Parent',
+            ACCEPTED_DATE: 'Accepted Date',
+            OWNER: 'Owner'
         },
         USER_STORY_FIELDS: [
             'ObjectID', 'FormattedID', 'Name', 'AcceptedDate', 'Deliverable', 'c_ExpenseCategory',
