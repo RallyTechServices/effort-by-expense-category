@@ -174,11 +174,11 @@ Ext.define("CArABU.app.TSApp", {
             showRowActionsColumn: false,
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
-                dataIndex: 'ProjectName',
+                dataIndex: 'Project_Name',
                 flex: 1,
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
-                dataIndex: 'DeliverableFormattedId'
+                dataIndex: 'PortfolioItem/Deliverable_FormattedId'
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
                 dataIndex: 'ExpenseCategory'
@@ -191,7 +191,7 @@ Ext.define("CArABU.app.TSApp", {
                 }
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,
-                dataIndex: 'DeliverableName'
+                dataIndex: 'PortfolioItem/Deliverable_Name'
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
                 dataIndex: 'PortfolioItem/Project_FormattedId'
@@ -200,26 +200,30 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Project_Name',
             }, {
                 text: Constants.LABEL.INITIATIVE_ID,
-                dataIndex: 'InitiativeFormattedId',
+                dataIndex: 'PortfolioItem/Initiative_FormattedId',
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
-                dataIndex: 'InitiativeName'
+                dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'DeliverableState'
+                dataIndex: 'PortfolioItem/Deliverable_State'
             }]
         });
     },
 
-    addDetailsGrid: function(data) {
+    addDetailsGrid: function(summaryItems) {
         var tableArea = this.down('#' + Constants.ID.DETAILS_AREA);
-        var details = _.reduce(data, function(accumulator, datum) {
-            _.forEach(datum.get('Children'), function(child) {
-                child.set('SummaryItem', datum.data);
-                accumulator.push(child);
+        // Build details data from each child in the SummaryItems. For each child,
+        // set the SummaryItem fields as SummaryItem_FieldName to allow for easy
+        // sorting of the columns using dataIndex (rather than requiring custom sort and render
+        // functions).
+        var summaryItemFields = SummaryItem.getFields();
+        var details = [];
+        _.forEach(summaryItems, function(summaryItem) {
+            _.forEach(summaryItem.get('Children'), function(child) {
+                details.push(child);
             });
-            return accumulator;
-        }, []);
+        });
         tableArea.removeAll();
         var store = Ext.create('Rally.data.custom.Store', {
             data: details,
@@ -230,60 +234,46 @@ Ext.define("CArABU.app.TSApp", {
             enableEditing: false,
             showRowActionsColumn: false,
             columnCfgs: [{
-                    text: Constants.LABEL.TEAM_NAME,
-                    xtype: 'templatecolumn',
-                    tpl: '{SummaryItem.Project.Name}',
-                    flex: 1
-                }, {
-                    text: Constants.LABEL.USER_STORY_ID,
-                    dataIndex: 'FormattedID'
-                }, {
-                    text: Constants.LABEL.PARENT,
-                    xtype: 'templatecolumn',
-                    tpl: '{Parent.FormattedID}'
-                }, {
-                    text: Constants.LABEL.DELIVERABLE_ID,
-                    xtype: 'templatecolumn',
-                    tpl: '{SummaryItem.DeliverableFormattedId}'
-                }, {
-                    text: Constants.LABEL.DELIVERABLE_NAME,
-                    xtype: 'templatecolumn',
-                    tpl: '{SummaryItem.DeliverableName}'
-                }, {
-                    text: Constants.LABEL.EXPENSE_CATEGORY,
-                    dataIndex: 'c_ExpenseCategory'
-                },
-                {
-                    text: Constants.LABEL.PI_PROJECT_ID,
-                    xtype: 'templatecolumn',
-                    tpl: '{SummaryItem.PiProject.FormattedId}'
-                },
-                /* {
-                                    text: Constants.LABEL.PI_PROJECT_NAME,
-                                    xtype: 'templatecolumn',
-                                    tpl: '{SummaryItem.PiProject.Name}'
-                                }, {
-                                    text: Constants.LABEL.INITIATIVE_ID,
-                                    xtype: 'templatecolumn',
-                                    tpl: '{SummaryItem.Initiative.FormattedId}'
-                                }, {
-                                    text: Constants.LABEL.INITIATIVE_NAME,
-                                    xtype: 'templatecolumn',
-                                    tpl: '{SummaryItem.Initiative.Name}'
-                                }, {
-                                    text: Constants.LABEL.DELIVERABLE_STATE,
-                                    xtype: 'templatecolumn',
-                                    tpl: '{SummaryItem.Deliverable.State.Name}'
-                                }, {
-                                    text: Constants.LABEL.OWNER,
-                                    xtype: 'templatecolumn',
-                                    tpl: '{Owner.Name}'
-                                }, */
-                {
-                    text: Constants.LABEL.ACCEPTED_DATE,
-                    dataIndex: 'AcceptedDate'
-                }
-            ]
+                text: Constants.LABEL.TEAM_NAME,
+                dataIndex: 'SummaryItem_Project_Name',
+                flex: 1
+            }, {
+                text: Constants.LABEL.USER_STORY_ID,
+                dataIndex: 'FormattedID'
+            }, {
+                text: Constants.LABEL.PARENT,
+                dataIndex: 'Parent_FormattedId'
+            }, {
+                text: Constants.LABEL.DELIVERABLE_ID,
+                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId'
+            }, {
+                text: Constants.LABEL.DELIVERABLE_NAME,
+                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_Name'
+            }, {
+                text: Constants.LABEL.EXPENSE_CATEGORY,
+                dataIndex: 'c_ExpenseCategory'
+            }, {
+                text: Constants.LABEL.PI_PROJECT_ID,
+                dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId'
+            }, {
+                text: Constants.LABEL.PI_PROJECT_NAME,
+                dataIndex: 'SummaryItem_PortfolioItem/Project_Name'
+            }, {
+                text: Constants.LABEL.INITIATIVE_ID,
+                dataIndex: 'SummaryItem_PortfolioItem/Initiative_FormattedId'
+            }, {
+                text: Constants.LABEL.INITIATIVE_NAME,
+                dataIndex: 'SummaryItem_PortfolioItem/Initiative_Name'
+            }, {
+                text: Constants.LABEL.DELIVERABLE_STATE,
+                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State'
+            }, {
+                text: Constants.LABEL.OWNER,
+                dataIndex: 'Owner_Name'
+            }, {
+                text: Constants.LABEL.ACCEPTED_DATE,
+                dataIndex: 'AcceptedDate'
+            }]
         });
     },
 
