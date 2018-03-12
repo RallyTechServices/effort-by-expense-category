@@ -1,7 +1,7 @@
 {
     "name": "Effort By Expense Category",
     "sdk": "2.1",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "className": "CArABU.app.TSApp",
     "artifact": "",
     "javascript": [

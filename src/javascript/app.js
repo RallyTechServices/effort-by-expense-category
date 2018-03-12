@@ -165,7 +165,30 @@ Ext.define("CArABU.app.TSApp", {
         tableArea.removeAll();
         var store = Ext.create('Rally.data.custom.Store', {
             data: data,
-            model: SummaryItem
+            model: SummaryItem,
+            // By default sort by Project Name + Deliverable ID + Expense category
+            sorters: [{
+                sorterFn: function(a, b) {
+                    var groupString = function(summaryItem) {
+                        return [
+                            summaryItem.get('Project_Name'),
+                            summaryItem.get('PortfolioItem/Deliverable_FormattedId'),
+                            summaryItem.get('ExpenseCategory')
+                        ].join(':');
+                    }
+                    var aStr = groupString(a);
+                    var bStr = groupString(b);
+                    if (aStr < bStr) {
+                        return -1;
+                    }
+                    else if (aStr > bStr) {
+                        return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            }]
         });
         tableArea.add({
             xtype: 'rallygrid',
@@ -277,13 +300,16 @@ Ext.define("CArABU.app.TSApp", {
         });
     },
 
+    /**
+     * Group user stories by Project Name + Deliverable ID + Expense Category
+     */
     getGroupString: function(instance) {
         var project = instance.get('Project');
         var deliverable = instance.get('Deliverable');
         var expenseCategory = instance.get('c_ExpenseCategory') || 'None';
-        var projectOid = project ? project.ObjectID : 'None';
-        var deliverableOid = deliverable ? deliverable.ObjectID : 'None';
-        return [projectOid, deliverableOid, expenseCategory].join(':');
+        var projectName = project ? project.Name : 'None';
+        var deliverableName = deliverable ? deliverable.Name : 'None';
+        return [projectName, deliverableName, expenseCategory].join(':');
     },
 
     getSettingsFields: function() {
