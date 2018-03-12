@@ -1,30 +1,27 @@
-/* global Ext _ */
+/* global Ext _ SummaryItem */
+
+/**
+ * NOTE: All individual fields needed by the summary and detail grids are placed
+ * as top level fields to allow easy column sorting. The alternative of only setting
+ * objects here and using template columns or custom renderers would then require
+ * writing custom sorting functions for each column.
+ */
 Ext.define("SummaryItem", {
     extend: 'Ext.data.Model',
-    // TODO Refactor to simply store PIs then use template renderers
     fields: [{
         name: 'Project',
-        type: 'auto',
-    }, {
-        name: 'PiProject',
         type: 'auto'
     }, {
-        name: 'Deliverable',
-        type: 'auto'
-    }, {
-        name: 'Initiative',
-        type: 'auto'
-    }, {
-        name: 'ProjectName',
+        name: 'Project_Name',
         type: 'string'
     }, {
-        name: 'DeliverableFormattedId',
+        name: 'PortfolioItem/Deliverable_FormattedId',
         type: 'string'
     }, {
-        name: 'DeliverableName',
+        name: 'PortfolioItem/Deliverable_Name',
         type: 'string'
     }, {
-        name: 'DeliverableState',
+        name: 'PortfolioItem/Deliverable_State',
         type: 'string'
     }, {
         name: 'ExpenseCategory',
@@ -39,10 +36,10 @@ Ext.define("SummaryItem", {
         name: 'PortfolioItem/Project_Name',
         type: 'string'
     }, {
-        name: 'InitiativeFormattedId',
+        name: 'PortfolioItem/Initiative_FormattedId',
         type: 'string'
     }, {
-        name: 'InitiativeName',
+        name: 'PortfolioItem/Initiative_Name',
         type: 'string'
     }, {
         name: 'Children',
@@ -60,24 +57,22 @@ Ext.define("SummaryItem", {
 
         if (project) {
             this.set('Project', project);
-            this.set('ProjectName', project.Name)
+            this.set('Project_Name', project.Name)
         }
 
         if (deliverable) {
-            this.set('Deliverable', deliverable);
-            this.set('DeliverableFormattedId', deliverable.FormattedID);
-            this.set('DeliverableName', deliverable.Name);
+            this.set('PortfolioItem/Deliverable_FormattedId', deliverable.FormattedID);
+            this.set('PortfolioItem/Deliverable_Name', deliverable.Name);
             if (deliverable.State) {
-                this.set('DeliverableState', deliverable.State.Name);
+                this.set('PortfolioItem/Deliverable_State', deliverable.State.Name);
             }
 
             var portfolioItem_Project = deliverable.Parent;
             if (portfolioItem_Project) {
-                this.set('PiProject', portfolioItem_Project);
                 this.set('PortfolioItem/Project_FormattedId', portfolioItem_Project.FormattedID);
                 this.set('PortfolioItem/Project_Name', portfolioItem_Project.Name);
 
-                // Queue a load of the PortfolioItem/Project so we can get the parent Initiative
+                // Queue loading the PortfolioItem/Project so we can get the parent Initiative
                 var projectStore = Ext.create('Rally.data.wsapi.Store', {
                     model: portfolioItem_Project._type,
                     fetch: ['FormattedID', 'Name', 'Parent'],
@@ -96,9 +91,10 @@ Ext.define("SummaryItem", {
                         if (records.length) {
                             var initiative = records[0].get('Parent');
                             if (initiative) {
-                                this.set('Initiative', initiative);
-                                this.set('InitiativeFormattedId', initiative.FormattedID);
-                                this.set('InitiativeName', initiative.Name);
+                                this.set('PortfolioItem/Initiative_FormattedId', initiative.FormattedID);
+                                this.set('PortfolioItem/Initiative_Name', initiative.Name);
+                                // Update the children with this new data
+                                this.annotateChildren()
                             }
                         }
                     }
@@ -111,5 +107,27 @@ Ext.define("SummaryItem", {
             return accumulator += story.get('PlanEstimate');
         }, 0);
         this.set('PlanEstimate', groupPlanEstimate);
+        this.annotateChildren();
     },
+
+    // Add the summary item values to each child as a field prefixed with 'SummaryItem_'.
+    // This allows easy use of the children values in grids without needing custom sort
+    // and render functions.
+    annotateChildren: function() {
+        var summaryItemFields = SummaryItem.getFields();
+        _.forEach(this.get('Children'), function(child) {
+            _.forEach(summaryItemFields, function(field) {
+                child.set('SummaryItem_' + field.name, this.get(field.name));
+            }, this);
+            child.set('SummaryItem', this);
+            var parent = child.get('Parent');
+            if (parent) {
+                child.set('Parent_FormattedId', parent.FormattedID);
+            }
+            var owner = child.get('Owner');
+            if (owner) {
+                child.set('Owner_Name', owner._refObjectName);
+            }
+        }, this);
+    }
 });
