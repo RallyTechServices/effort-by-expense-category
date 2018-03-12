@@ -2,6 +2,22 @@
 
 ## Summary/Description
 
+Load stories accepted within a data range. Group them by their
+Project Name + Feature Name + c_ExpenseCategory value.
+
+Display each group as a row, including data about the parent
+Portfolio Items.  For each group, calculate a `% of Effort` metric which is the
+sum of the PlanEstimate values for all stories in the group, divided by the sum
+of PlanEstimate values for all stories in that group's Project.
+
+For example, if there are two stories in Project `Foo`, both with a PlanEstimate of
+1, but with different ExpenseCategory (or Deliverable), then there will be two rows
+in the table, each with a `% of Effort` value of `50%`.
+
+Assumes:
+* Portfolio Item Hierarchy of `Deliverable` (lowest) -> `Project` -> `Initiative` (highest)
+* HierarchicalRequirement (User Story) has custom field of `c_ExpenseCategory`
+
 ![screenshot](./images/screenshot.png "This is an example")
 
 ## Development Notes

@@ -11,8 +11,8 @@ Ext.define("Constants", {
             TAB_PANEL: 'TAB_PANEL',
         },
         LABEL: {
-            ACCEPTED_START_DATE: "Start Date",
-            ACCEPTED_END_DATE: "End Date",
+            ACCEPTED_START_DATE: "Start Accepted Date",
+            ACCEPTED_END_DATE: "End Accepted Date",
             TEAM_NAME: 'Team',
             DELIVERABLE_ID: 'Deliverable',
             EXPENSE_CATEGORY: 'Expense Category',
