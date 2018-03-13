@@ -1,4 +1,4 @@
-/* global Ext Deft TSUtilities CArABU Constants SummaryItem _ */
+/* global Ext Deft TSUtilities CArABU Constants SummaryItem _ Rally */
 Ext.define("CArABU.app.TSApp", {
     extend: 'Rally.app.App',
     componentCls: 'app',
@@ -202,11 +202,20 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'PortfolioItem/Deliverable_FormattedId',
-                renderer: function(value, meta) {
-                    if (!value) {
+                renderer: function(value, meta, record) {
+                    var result = '';
+                    if (value) {
+                        result = Rally.nav.DetailLink.getLink({
+                            record: record.get('PortfolioItem/Deliverable'),
+                            text: value,
+                            showHover: true,
+                            showTooltip: true
+                        });
+                    }
+                    else {
                         meta.tdCls = 'has-error'
                     }
-                    return value;
+                    return result;
                 }
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
@@ -224,11 +233,20 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
                 dataIndex: 'PortfolioItem/Project_FormattedId',
-                renderer: function(value, meta) {
-                    if (!value) {
+                renderer: function(value, meta, record) {
+                    var result = '';
+                    if (value) {
+                        result = Rally.nav.DetailLink.getLink({
+                            record: record.get('PortfolioItem/Project'),
+                            text: value,
+                            showHover: true,
+                            showTooltip: true
+                        });
+                    }
+                    else {
                         meta.tdCls = 'has-error'
                     }
-                    return value
+                    return result;
                 }
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
@@ -236,11 +254,20 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.INITIATIVE_ID,
                 dataIndex: 'PortfolioItem/Initiative_FormattedId',
-                renderer: function(value, meta) {
-                    if (!value) {
+                renderer: function(value, meta, record) {
+                    var result = '';
+                    if (value) {
+                        result = Rally.nav.DetailLink.getLink({
+                            record: record.get('PortfolioItem/Initiative'),
+                            text: value,
+                            showHover: true,
+                            showTooltip: true
+                        });
+                    }
+                    else {
                         meta.tdCls = 'has-error'
                     }
-                    return value
+                    return result;
                 }
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,

@@ -15,6 +15,9 @@ Ext.define("SummaryItem", {
         name: 'Project_Name',
         type: 'string'
     }, {
+        name: 'PortfolioItem/Deliverable',
+        type: 'auto'
+    }, {
         name: 'PortfolioItem/Deliverable_FormattedId',
         type: 'string'
     }, {
@@ -30,11 +33,17 @@ Ext.define("SummaryItem", {
         name: 'PlanEstimate',
         type: 'float'
     }, {
+        name: 'PortfolioItem/Project',
+        type: 'auto'
+    }, {
         name: 'PortfolioItem/Project_FormattedId',
         type: 'string'
     }, {
         name: 'PortfolioItem/Project_Name',
         type: 'string'
+    }, {
+        name: 'PortfolioItem/Initiative',
+        type: 'auto'
     }, {
         name: 'PortfolioItem/Initiative_FormattedId',
         type: 'string'
@@ -61,6 +70,7 @@ Ext.define("SummaryItem", {
         }
 
         if (deliverable) {
+            this.set('PortfolioItem/Deliverable', deliverable);
             this.set('PortfolioItem/Deliverable_FormattedId', deliverable.FormattedID);
             this.set('PortfolioItem/Deliverable_Name', deliverable.Name);
             if (deliverable.State) {
@@ -69,6 +79,7 @@ Ext.define("SummaryItem", {
 
             var portfolioItem_Project = deliverable.Parent;
             if (portfolioItem_Project) {
+                this.set('PortfolioItem/Project', portfolioItem_Project);
                 this.set('PortfolioItem/Project_FormattedId', portfolioItem_Project.FormattedID);
                 this.set('PortfolioItem/Project_Name', portfolioItem_Project.Name);
 
@@ -91,6 +102,7 @@ Ext.define("SummaryItem", {
                         if (records.length) {
                             var initiative = records[0].get('Parent');
                             if (initiative) {
+                                this.set('PortfolioItem/Initiative', initiative);
                                 this.set('PortfolioItem/Initiative_FormattedId', initiative.FormattedID);
                                 this.set('PortfolioItem/Initiative_Name', initiative.Name);
                                 // Update the children with this new data
