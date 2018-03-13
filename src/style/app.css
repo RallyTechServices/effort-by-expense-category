@@ -15,3 +15,7 @@
     margin-right: 5px;
     cursor: pointer;
 }
+
+td.has-error {
+    background-color: #ffbdbd !important;
+}

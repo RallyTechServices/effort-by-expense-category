@@ -201,7 +201,13 @@ Ext.define("CArABU.app.TSApp", {
                 flex: 1,
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
-                dataIndex: 'PortfolioItem/Deliverable_FormattedId'
+                dataIndex: 'PortfolioItem/Deliverable_FormattedId',
+                renderer: function(value, meta) {
+                    if (!value) {
+                        meta.tdCls = 'has-error'
+                    }
+                    return value;
+                }
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
                 dataIndex: 'ExpenseCategory'
@@ -217,19 +223,41 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Deliverable_Name'
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
-                dataIndex: 'PortfolioItem/Project_FormattedId'
+                dataIndex: 'PortfolioItem/Project_FormattedId',
+                renderer: function(value, meta) {
+                    if (!value) {
+                        meta.tdCls = 'has-error'
+                    }
+                    return value
+                }
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
                 dataIndex: 'PortfolioItem/Project_Name',
             }, {
                 text: Constants.LABEL.INITIATIVE_ID,
                 dataIndex: 'PortfolioItem/Initiative_FormattedId',
+                renderer: function(value, meta) {
+                    if (!value) {
+                        meta.tdCls = 'has-error'
+                    }
+                    return value
+                }
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
                 dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'PortfolioItem/Deliverable_State'
+                dataIndex: 'PortfolioItem/Deliverable_State',
+                renderer: function(value, meta, record) {
+                    // Show a blank value UNLESS the state is done. If so, show an error icon
+                    // and mark the cell so a CSS rule can highlight the entire row
+                    var result = '';
+                    if (value == 'Done') {
+                        result = '<span class="icon-ok icon-2x"><span>';
+                        meta.tdCls = 'has-error';
+                    }
+                    return result;
+                }
             }]
         });
     },
