@@ -194,7 +194,8 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Deliverable_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'PortfolioItem/Deliverable');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
                 dataIndex: 'ExpenseCategory'
@@ -213,7 +214,8 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Project_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'PortfolioItem/Project');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
                 dataIndex: 'PortfolioItem/Project_Name',
@@ -222,14 +224,16 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Initiative_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'PortfolioItem/Initiative');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
                 dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
                 dataIndex: 'PortfolioItem/Deliverable_State',
-                renderer: Renderers.piDeliverableState
+                renderer: Renderers.piDeliverableState,
+                _csvIgnoreRender: true
             }]
         });
     },
@@ -264,19 +268,22 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'FormattedID',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, null);
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.PARENT,
                 dataIndex: 'Parent_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'Parent', false);
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Deliverable');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_Name'
@@ -288,7 +295,8 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Project');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Project_Name'
@@ -297,20 +305,23 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'SummaryItem_PortfolioItem/Initiative_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Initiative');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State',
-                renderer: Renderers.piDeliverableState
+                renderer: Renderers.piDeliverableState,
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.OWNER,
                 dataIndex: 'Owner_Name',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'Owner');
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.ACCEPTED_DATE,
                 dataIndex: 'AcceptedDate'

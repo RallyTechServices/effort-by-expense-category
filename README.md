@@ -19,6 +19,8 @@ in the table, each with a `% of Effort` value of `50%`.
 The full list of user stories accepted within the date range is available on the `Details`
 tab.
 
+Data from both tables can be exported in CSV format.
+
 Finally, all stories are expected to be assigned to a PortfolioItem/Deliverable,
 PortfolioItem/Project and PortfolioItem/Initiative. Also, the Deliverable state must NOT
 be "Done". Any rows that violate these rules have the corresponding column highlighted in
