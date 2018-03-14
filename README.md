@@ -2,6 +2,8 @@
 
 ## Summary/Description
 
+![screenshot](./images/screenshot.png "This is an example")
+
 Load stories accepted within a data range. Group them by their
 Project Name + Feature Name + c_ExpenseCategory value.
 
@@ -14,11 +16,18 @@ For example, if there are two stories in Project `Foo`, both with a PlanEstimate
 1, but with different ExpenseCategory (or Deliverable), then there will be two rows
 in the table, each with a `% of Effort` value of `50%`.
 
+The full list of user stories accepted within the date range is available on the `Details`
+tab.
+
+Finally, all stories are expected to be assigned to a PortfolioItem/Deliverable,
+PortfolioItem/Project and PortfolioItem/Initiative. Also, the Deliverable state must NOT
+be "Done". Any rows that violate these rules have the corresponding column highlighted in
+red.
+
 Assumes:
 * Portfolio Item Hierarchy of `Deliverable` (lowest) -> `Project` -> `Initiative` (highest)
 * HierarchicalRequirement (User Story) has custom field of `c_ExpenseCategory`
-
-![screenshot](./images/screenshot.png "This is an example")
+* The PortfolioItem/Deliverable State from **today**, not from the end of the date range.
 
 ## Development Notes
 
