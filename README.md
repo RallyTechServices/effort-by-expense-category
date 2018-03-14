@@ -11,7 +11,9 @@ Project Name + Feature Name + c_ExpenseCategory value.
 Display each group as a row, including data about the parent
 Portfolio Items.  For each group, calculate a `% of Effort` metric which is the
 sum of the PlanEstimate values for all stories in the group, divided by the sum
-of PlanEstimate values for all stories in that group's Project.
+of PlanEstimate values for all stories in that group's Project. Also, display
+the PortfolioItem/Deliverable State as an icon. If the value is "Done", display
+a checkmark, otherwise, display a blank value (ignoring any other State values).
 
 For example, if there are two stories in Project `Foo`, both with a PlanEstimate of
 1, but with different ExpenseCategory (or Deliverable), then there will be two rows
