@@ -2,7 +2,8 @@
 
 ## Summary/Description
 
-![screenshot](./images/screenshot.png "This is an example")
+![Summary](./images/summary.png "This is an example of the Summary")
+![Details](./images/details.png "This is an example of the Details")
 
 Load stories accepted within a data range. Group them by their
 Project Name + Feature Name + c_ExpenseCategory value.
