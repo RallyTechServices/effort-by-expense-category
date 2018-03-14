@@ -1,4 +1,4 @@
-/* global Ext Deft TSUtilities CArABU Constants SummaryItem _ Rally */
+/* global Ext Deft TSUtilities CArABU Constants SummaryItem _ Rally Renderers */
 Ext.define("CArABU.app.TSApp", {
     extend: 'Rally.app.App',
     componentCls: 'app',
@@ -20,7 +20,6 @@ Ext.define("CArABU.app.TSApp", {
         },
         items: [{
             xtype: 'rallydatefield',
-            region: 'west',
             itemId: Constants.ID.ACCEPTED_START_DATE,
             fieldLabel: Constants.LABEL.ACCEPTED_START_DATE,
             stateful: true,
@@ -34,7 +33,7 @@ Ext.define("CArABU.app.TSApp", {
             stateId: Constants.ID.ACCEPTED_END_DATE
         }, {
             xtype: 'container',
-            region: 'center',
+            itemId: 'controlBarPadding',
             flex: 1,
         }, {
             xtype: 'rallybutton',
@@ -165,8 +164,6 @@ Ext.define("CArABU.app.TSApp", {
         tableArea.removeAll();
         var store = Ext.create('Rally.data.custom.Store', {
             data: data,
-            model: SummaryItem,
-            // By default sort by Project Name + Deliverable ID + Expense category
             sorters: [{
                 sorterFn: function(a, b) {
                     var groupString = function(summaryItem) {
@@ -198,24 +195,11 @@ Ext.define("CArABU.app.TSApp", {
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
-                flex: 1,
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'PortfolioItem/Deliverable_FormattedId',
                 renderer: function(value, meta, record) {
-                    var result = '';
-                    if (value) {
-                        result = Rally.nav.DetailLink.getLink({
-                            record: record.get('PortfolioItem/Deliverable'),
-                            text: value,
-                            showHover: true,
-                            showTooltip: true
-                        });
-                    }
-                    else {
-                        meta.tdCls = 'has-error'
-                    }
-                    return result;
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Deliverable');
                 }
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
@@ -234,19 +218,7 @@ Ext.define("CArABU.app.TSApp", {
                 text: Constants.LABEL.PI_PROJECT_ID,
                 dataIndex: 'PortfolioItem/Project_FormattedId',
                 renderer: function(value, meta, record) {
-                    var result = '';
-                    if (value) {
-                        result = Rally.nav.DetailLink.getLink({
-                            record: record.get('PortfolioItem/Project'),
-                            text: value,
-                            showHover: true,
-                            showTooltip: true
-                        });
-                    }
-                    else {
-                        meta.tdCls = 'has-error'
-                    }
-                    return result;
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Project');
                 }
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
@@ -255,19 +227,7 @@ Ext.define("CArABU.app.TSApp", {
                 text: Constants.LABEL.INITIATIVE_ID,
                 dataIndex: 'PortfolioItem/Initiative_FormattedId',
                 renderer: function(value, meta, record) {
-                    var result = '';
-                    if (value) {
-                        result = Rally.nav.DetailLink.getLink({
-                            record: record.get('PortfolioItem/Initiative'),
-                            text: value,
-                            showHover: true,
-                            showTooltip: true
-                        });
-                    }
-                    else {
-                        meta.tdCls = 'has-error'
-                    }
-                    return result;
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Initiative');
                 }
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
@@ -275,16 +235,7 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
                 dataIndex: 'PortfolioItem/Deliverable_State',
-                renderer: function(value, meta, record) {
-                    // Show a blank value UNLESS the state is done. If so, show an error icon
-                    // and mark the cell so a CSS rule can highlight the entire row
-                    var result = '';
-                    if (value == 'Done') {
-                        result = '<span class="icon-ok icon-2x"><span>';
-                        meta.tdCls = 'has-error';
-                    }
-                    return result;
-                }
+                renderer: Renderers.piDeliverableState
             }]
         });
     },
@@ -314,16 +265,24 @@ Ext.define("CArABU.app.TSApp", {
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'SummaryItem_Project_Name',
-                flex: 1
             }, {
                 text: Constants.LABEL.USER_STORY_ID,
-                dataIndex: 'FormattedID'
+                dataIndex: 'FormattedID',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, null);
+                }
             }, {
                 text: Constants.LABEL.PARENT,
-                dataIndex: 'Parent_FormattedId'
+                dataIndex: 'Parent_FormattedId',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'Parent', false);
+                }
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId'
+                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Deliverable');
+                }
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_Name'
@@ -332,22 +291,32 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'c_ExpenseCategory'
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId'
+                dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Project');
+                }
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Project_Name'
             }, {
                 text: Constants.LABEL.INITIATIVE_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Initiative_FormattedId'
+                dataIndex: 'SummaryItem_PortfolioItem/Initiative_FormattedId',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Initiative');
+                }
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State'
+                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State',
+                renderer: Renderers.piDeliverableState
             }, {
                 text: Constants.LABEL.OWNER,
-                dataIndex: 'Owner_Name'
+                dataIndex: 'Owner_Name',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'Owner');
+                }
             }, {
                 text: Constants.LABEL.ACCEPTED_DATE,
                 dataIndex: 'AcceptedDate'
