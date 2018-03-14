@@ -195,7 +195,6 @@ Ext.define("CArABU.app.TSApp", {
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
-                //flex: 1,
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'PortfolioItem/Deliverable_FormattedId',
