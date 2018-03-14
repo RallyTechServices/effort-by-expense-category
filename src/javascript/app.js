@@ -43,24 +43,18 @@ Ext.define("CArABU.app.TSApp", {
         }],
     }, {
         xtype: 'tabpanel',
+        flex: 1,
+        autoScroll: true,
         itemId: Constants.ID.TAB_PANEL,
         plain: true,
         items: [{
             xtype: 'container',
             title: Constants.LABEL.SUMMARY_AREA,
             itemId: Constants.ID.SUMMARY_AREA,
-            layout: {
-                type: 'vbox',
-                align: 'stretch'
-            }
         }, {
             xtype: 'container',
             title: Constants.LABEL.DETAILS_AREA,
             itemId: Constants.ID.DETAILS_AREA,
-            layout: {
-                type: 'vbox',
-                align: 'stretch'
-            }
         }]
     }],
 
