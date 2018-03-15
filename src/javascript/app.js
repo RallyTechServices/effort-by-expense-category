@@ -62,6 +62,7 @@ Ext.define("CArABU.app.TSApp", {
     endDate: undefined,
 
     launch: function() {
+        Ext.data.NodeInterface.decorate(SummaryItem);
         // Get references to the date controls
         var start = this.down('#' + Constants.ID.ACCEPTED_START_DATE);
         var end = this.down('#' + Constants.ID.ACCEPTED_END_DATE);
@@ -181,6 +182,7 @@ Ext.define("CArABU.app.TSApp", {
                 }
             }]
         });
+
         tableArea.add({
             xtype: 'rallygrid',
             store: store,
@@ -254,6 +256,29 @@ Ext.define("CArABU.app.TSApp", {
         tableArea.removeAll();
         var store = Ext.create('Rally.data.custom.Store', {
             data: details,
+            sorters: [{
+                sorterFn: function(a, b) {
+                    var groupString = function(story) {
+                        var summaryItem = story.get('SummaryItem');
+                        return [
+                            summaryItem.get('Project_Name'),
+                            summaryItem.get('PortfolioItem/Deliverable_FormattedId'),
+                            summaryItem.get('ExpenseCategory')
+                        ].join(':');
+                    }
+                    var aStr = groupString(a);
+                    var bStr = groupString(b);
+                    if (aStr < bStr) {
+                        return -1;
+                    }
+                    else if (aStr > bStr) {
+                        return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+            }]
         });
         tableArea.add({
             xtype: 'rallygrid',
@@ -271,12 +296,31 @@ Ext.define("CArABU.app.TSApp", {
                 },
                 _csvIgnoreRender: true
             }, {
+                text: Constants.LABEL.USER_STORY_NAME,
+                dataIndex: 'Name',
+            }, {
+                text: Constants.LABEL.EXPENSE_CATEGORY,
+                dataIndex: 'c_ExpenseCategory'
+            }, {
+                text: Constants.LABEL.OWNER,
+                dataIndex: 'Owner_Name',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'Owner');
+                },
+                _csvIgnoreRender: true
+            }, {
+                text: Constants.LABEL.ACCEPTED_DATE,
+                dataIndex: 'AcceptedDate'
+            }, {
                 text: Constants.LABEL.PARENT,
                 dataIndex: 'Parent_FormattedId',
                 renderer: function(value, meta, record) {
                     return Renderers.link(value, meta, record, 'Parent', false);
                 },
                 _csvIgnoreRender: true
+            }, {
+                text: Constants.LABEL.PARENT_NAME,
+                dataIndex: 'Parent_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId',
@@ -287,9 +331,6 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_Name'
-            }, {
-                text: Constants.LABEL.EXPENSE_CATEGORY,
-                dataIndex: 'c_ExpenseCategory'
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
                 dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId',
@@ -315,16 +356,6 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State',
                 renderer: Renderers.piDeliverableState,
                 _csvIgnoreRender: true
-            }, {
-                text: Constants.LABEL.OWNER,
-                dataIndex: 'Owner_Name',
-                renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'Owner');
-                },
-                _csvIgnoreRender: true
-            }, {
-                text: Constants.LABEL.ACCEPTED_DATE,
-                dataIndex: 'AcceptedDate'
             }]
         });
     },

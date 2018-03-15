@@ -170,6 +170,7 @@ Ext.define("SummaryItem", {
             var parent = child.get('Parent');
             if (parent) {
                 child.set('Parent_FormattedId', parent.FormattedID);
+                child.set('Parent_Name', parent.Name);
             }
             var owner = child.get('Owner');
             if (owner) {

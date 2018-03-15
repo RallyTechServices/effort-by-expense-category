@@ -27,7 +27,9 @@ Ext.define("Constants", {
             SUMMARY_AREA: 'Summary',
             DETAILS_AREA: 'Details',
             USER_STORY_ID: 'User Story',
-            PARENT: 'User Story Parent',
+            USER_STORY_NAME: 'User Story Name',
+            PARENT: 'Epic',
+            PARENT_NAME: 'Epic Name',
             ACCEPTED_DATE: 'Accepted Date',
             OWNER: 'Owner'
         },
