@@ -1,4 +1,4 @@
-/* global Ext _ SummaryItem */
+/* global Ext _ SummaryItem Deft */
 
 /**
  * NOTE: All individual fields needed by the summary and detail grids are placed
@@ -60,7 +60,6 @@ Ext.define("SummaryItem", {
 
         var firstItem = group.children[0];
         var project = firstItem.get('Project');
-        var deliverable = firstItem.get('Deliverable');
 
         this.set('Children', group.children);
 
@@ -68,6 +67,19 @@ Ext.define("SummaryItem", {
             this.set('Project', project);
             this.set('Project_Name', project.Name)
         }
+
+        this.loadParentPis(firstItem);
+
+        this.set('ExpenseCategory', firstItem.get('c_ExpenseCategory'));
+        var groupPlanEstimate = _.reduce(group.children, function(accumulator, story) {
+            return accumulator += story.get('PlanEstimate');
+        }, 0);
+        this.set('PlanEstimate', groupPlanEstimate);
+        this.annotateChildren();
+    },
+
+    loadParentPis: function(firstItem) {
+        var deliverable = firstItem.get('Deliverable');
 
         if (deliverable) {
             this.set('PortfolioItem/Deliverable', deliverable);
@@ -77,49 +89,72 @@ Ext.define("SummaryItem", {
                 this.set('PortfolioItem/Deliverable_State', deliverable.State.Name);
             }
 
-            var portfolioItem_Project = deliverable.Parent;
-            if (portfolioItem_Project) {
-                this.set('PortfolioItem/Project', portfolioItem_Project);
-                this.set('PortfolioItem/Project_FormattedId', portfolioItem_Project.FormattedID);
-                this.set('PortfolioItem/Project_Name', portfolioItem_Project.Name);
-
-                // Queue loading the PortfolioItem/Project so we can get the parent Initiative
-                var projectStore = Ext.create('Rally.data.wsapi.Store', {
-                    model: portfolioItem_Project._type,
-                    fetch: ['FormattedID', 'Name', 'Parent'],
-                    filters: [{
-                        property: 'ObjectID',
-                        value: portfolioItem_Project.ObjectID
-                    }],
-                    autoLoad: false,
-                    context: {
-                        project: null
-                    }
-                });
-                projectStore.load().then({
+            // If this is a child of another story, Deliverable.Parent won't be set
+            // (even if that Deliverable has a parent PI). Fetch the full Deliverable
+            // to get PortfolioItem/Project information
+            this.loadFullPortfolioItem(deliverable)
+                .then({
                     scope: this,
-                    success: function(records) {
-                        if (records.length) {
-                            var initiative = records[0].get('Parent');
-                            if (initiative) {
-                                this.set('PortfolioItem/Initiative', initiative);
-                                this.set('PortfolioItem/Initiative_FormattedId', initiative.FormattedID);
-                                this.set('PortfolioItem/Initiative_Name', initiative.Name);
-                                // Update the children with this new data
-                                this.annotateChildren()
-                            }
+                    success: function(fullDeliverable) {
+                        var portfolioItem_Project = fullDeliverable.get('Parent');
+                        if (portfolioItem_Project) {
+                            this.set('PortfolioItem/Project', portfolioItem_Project);
+                            this.set('PortfolioItem/Project_FormattedId', portfolioItem_Project.FormattedID);
+                            this.set('PortfolioItem/Project_Name', portfolioItem_Project.Name);
+                            return this.loadFullPortfolioItem(portfolioItem_Project);
+                        }
+                        else {
+                            // No parent PortfolioItem/Project
+                            return Ext.create('Deft.Deferred').resolve();
                         }
                     }
-                });
-            }
+                })
+                .then({
+                    scope: this,
+                    success: function(fullPortfolioItemProject) {
+                        var initiative = fullPortfolioItemProject.get('Parent');
+                        if (initiative) {
+                            this.set('PortfolioItem/Initiative', initiative);
+                            this.set('PortfolioItem/Initiative_FormattedId', initiative.FormattedID);
+                            this.set('PortfolioItem/Initiative_Name', initiative.Name);
+                        }
+                        else {
+                            return Ext.create('Deft.Deferred').resolve();
+                        }
+                    }
+                })
+                .then({
+                    scope: this,
+                    success: function() {
+                        // Update the children with the PI data
+                        this.annotateChildren();
+                    }
+                })
         }
+    },
 
-        this.set('ExpenseCategory', firstItem.get('c_ExpenseCategory'));
-        var groupPlanEstimate = _.reduce(group.children, function(accumulator, story) {
-            return accumulator += story.get('PlanEstimate');
-        }, 0);
-        this.set('PlanEstimate', groupPlanEstimate);
-        this.annotateChildren();
+    loadFullPortfolioItem: function(partialItem) {
+        return Ext.create('Rally.data.wsapi.Store', {
+                model: partialItem._type,
+                fetch: ['ObjectID', 'FormattedID', 'Name', 'Parent'],
+                filters: [{
+                    property: 'ObjectID',
+                    value: partialItem.ObjectID
+                }],
+                autoLoad: false,
+                context: {
+                    project: null
+                }
+            })
+            .load()
+            .then(function(records) {
+                if (records.length) {
+                    return records[0]
+                }
+                else {
+                    return null;
+                }
+            })
     },
 
     // Add the summary item values to each child as a field prefixed with 'SummaryItem_'.
