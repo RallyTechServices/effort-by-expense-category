@@ -74,12 +74,26 @@ Ext.define("CArABU.app.TSApp", {
         button.setDisabled(true);
         // Export the data from the grid on the active tab. Use the tab title as the export filename.
         var activeTab = this.down('#' + Constants.ID.TAB_PANEL).getActiveTab();
-        var activeGrid = activeTab.down('rallygrid');
-        CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, activeGrid)
-            .then(function(csv) {
-                CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
-                button.setDisabled(false);
-            });
+        var activeGrid = activeTab.down('tablepanel');
+        if (activeTab.itemId === Constants.ID.SUMMARY_AREA) {
+            var csv = [];
+            var headers = CArABU.technicalservices.FileUtilities._getHeadersFromGrid(activeGrid);
+            csv.push('"' + headers.join('","') + '"');
+            var store = activeGrid.getStore();
+            activeGrid.getRootNode().eachChild(function(child) {
+                csv.push(CArABU.technicalservices.FileUtilities._getCSVFromRecord(child, activeGrid, store));
+            }, this);
+            csv = csv.join('\r\n');
+            CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
+            button.setDisabled(false);
+        }
+        else {
+            CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, activeGrid)
+                .then(function(csv) {
+                    CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
+                    button.setDisabled(false);
+                });
+        }
     },
 
     loadData: function() {
@@ -177,20 +191,25 @@ Ext.define("CArABU.app.TSApp", {
             xtype: 'treepanel',
             store: store,
             cls: 'rally-grid',
-            style: {
+            /*style: {
                 "border": '1px solid black'
-            },
+            },*/
             rootVisible: false,
             columns: [{
                 xtype: 'treecolumn',
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.USER_STORY_ID,
                 dataIndex: 'UserStory_FormattedId',
                 renderer: function(value, meta, record) {
+                    if (value == '--') {
+                        return '( ' + record.childNodes.length + ' )';
+                    }
                     return Renderers.link(value, meta, record, 'UserStory', false);
-                }
+                },
+                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.USER_STORY_NAME,
                 dataIndex: 'UserStory_Name'
@@ -339,7 +358,9 @@ Ext.define("CArABU.app.TSApp", {
         var summaryItemFields = SummaryItem.getFields();
         var details = [];
         _.forEach(summaryItems, function(summaryItem) {
-            _.forEach(summaryItem.get('children'), function(child) {
+            // For some reason the tree grid REMOVES the children after it has processed them??
+            var children = summaryItem.get('children') || summaryItem.childNodes;
+            _.forEach(children, function(child) {
                 details.push(child);
             });
         });
@@ -390,6 +411,9 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
                 dataIndex: 'ExpenseCategory'
+            }, {
+                text: Constants.LABEL.PLAN_ESTIMATE,
+                dataIndex: 'PlanEstimate',
             }, {
                 text: Constants.LABEL.OWNER,
                 dataIndex: 'Owner_Name',

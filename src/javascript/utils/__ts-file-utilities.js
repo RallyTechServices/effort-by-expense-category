@@ -296,7 +296,8 @@ Ext.define('CArABU.technicalservices.FileUtilities', {
     getCSVFromGrid: function(app, grid) {
         this.logger.log("Exporting grid with store type:", Ext.getClassName(grid.getStore()));
 
-        if (Ext.getClassName(grid.getStore()) != "Rally.data.custom.Store") {
+        if (Ext.getClassName(grid.getStore()) != "Ext.data.TreeStore" &&
+            Ext.getClassName(grid.getStore()) != "Rally.data.custom.Store") {
             return this._getCSVFromWsapiBackedGrid(grid);
         }
 

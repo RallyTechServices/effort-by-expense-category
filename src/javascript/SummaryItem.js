@@ -9,79 +9,81 @@
 Ext.define("SummaryItem", {
     extend: 'Ext.data.Model',
     fields: [{
-        name: 'Project',
-        type: 'auto'
-    }, {
-        name: 'UserStory',
-        type: 'auto'
-    }, {
-        name: 'UserStory_FormattedId',
-        type: 'string',
-        defaultValue: '--'
-    }, {
-        name: 'UserStory_Name',
-        type: 'string',
-        defaultValue: '--'
-    }, {
-        name: 'UserStory_AcceptedDate',
-        type: 'string',
-    }, {
-        name: 'Parent_FormattedId',
-        type: 'string'
-    }, {
-        name: 'Parent_Name',
-        type: 'string'
-    }, {
-        name: 'Owner_Name',
-        type: 'string'
-    }, {
-        name: 'Project_Name',
-        type: 'string'
-    }, {
-        name: 'PortfolioItem/Deliverable',
-        type: 'auto'
-    }, {
-        name: 'PortfolioItem/Deliverable_FormattedId',
-        type: 'string'
-    }, {
-        name: 'PortfolioItem/Deliverable_Name',
-        type: 'string'
-    }, {
-        name: 'PortfolioItem/Deliverable_State',
-        type: 'string'
-    }, {
-        name: 'ExpenseCategory',
-        type: 'string'
-    }, {
-        name: 'PlanEstimate',
-        type: 'float'
-    }, {
-        name: 'PortfolioItem/Project',
-        type: 'auto'
-    }, {
-        name: 'PortfolioItem/Project_FormattedId',
-        type: 'string',
-        defaultValue: Constants.LABEL.LOADING
-    }, {
-        name: 'PortfolioItem/Project_Name',
-        type: 'string',
-        defaultValue: Constants.LABEL.LOADING
-    }, {
-        name: 'PortfolioItem/Initiative',
-        type: 'auto'
-    }, {
-        name: 'PortfolioItem/Initiative_FormattedId',
-        type: 'string',
-        defaultValue: Constants.LABEL.LOADING
-    }, {
-        name: 'PortfolioItem/Initiative_Name',
-        type: 'string',
-        defaultValue: Constants.LABEL.LOADING
-    }, {
-        name: 'children',
-        type: 'auto',
-        defaultValue: []
-    }],
+            name: 'Project',
+            type: 'auto'
+        }, {
+            name: 'UserStory',
+            type: 'auto'
+        }, {
+            name: 'UserStory_FormattedId',
+            type: 'string',
+            defaultValue: '--'
+        }, {
+            name: 'UserStory_Name',
+            type: 'string',
+            defaultValue: '--'
+        }, {
+            name: 'UserStory_AcceptedDate',
+            type: 'string',
+        }, {
+            name: 'Parent_FormattedId',
+            type: 'string'
+        }, {
+            name: 'Parent_Name',
+            type: 'string'
+        }, {
+            name: 'Owner_Name',
+            type: 'string'
+        }, {
+            name: 'Project_Name',
+            type: 'string'
+        }, {
+            name: 'PortfolioItem/Deliverable',
+            type: 'auto'
+        }, {
+            name: 'PortfolioItem/Deliverable_FormattedId',
+            type: 'string'
+        }, {
+            name: 'PortfolioItem/Deliverable_Name',
+            type: 'string'
+        }, {
+            name: 'PortfolioItem/Deliverable_State',
+            type: 'string'
+        }, {
+            name: 'ExpenseCategory',
+            type: 'string'
+        }, {
+            name: 'PlanEstimate',
+            type: 'float'
+        }, {
+            name: 'PortfolioItem/Project',
+            type: 'auto'
+        }, {
+            name: 'PortfolioItem/Project_FormattedId',
+            type: 'string',
+            defaultValue: Constants.LABEL.LOADING
+        }, {
+            name: 'PortfolioItem/Project_Name',
+            type: 'string',
+            defaultValue: Constants.LABEL.LOADING
+        }, {
+            name: 'PortfolioItem/Initiative',
+            type: 'auto'
+        }, {
+            name: 'PortfolioItem/Initiative_FormattedId',
+            type: 'string',
+            defaultValue: Constants.LABEL.LOADING
+        }, {
+            name: 'PortfolioItem/Initiative_Name',
+            type: 'string',
+            defaultValue: Constants.LABEL.LOADING
+        },
+        {
+            name: 'children',
+            type: 'auto',
+            defaultValue: []
+        }
+    ],
 
     /**
      * Create a SummaryItem and loads parent PortfolioItem information in
@@ -105,8 +107,6 @@ Ext.define("SummaryItem", {
         }, 0);
         this.set('PlanEstimate', groupPlanEstimate);
 
-        this.addStoriesAsChildren(group.children);
-
         this.loadParentPis(firstStory)
             .then({
                 scope: this,
@@ -116,6 +116,10 @@ Ext.define("SummaryItem", {
                     return this;
                 }
             });
+
+        this.addStoriesAsChildren(group.children);
+
+        this.updateChildren(); // Copy summary info to each child
     },
 
     addStoriesAsChildren: function(stories) {
@@ -124,12 +128,15 @@ Ext.define("SummaryItem", {
         var children = [];
         _.forEach(stories, function(story) {
             var childItem = new SummaryItem();
-
+            var project = story.get('Project');
+            if (project) {
+                childItem.set('Project', project);
+                childItem.set('Project_Name', project.Name)
+            }
             childItem.set('UserStory', story);
             childItem.set('UserStory_FormattedId', story.get('FormattedID'));
             childItem.set('UserStory_Name', story.get('Name'));
             childItem.set('UserStory_AcceptedDate', story.get('AcceptedDate'));
-            //childItem.set('Project_Name', this.get('Project_Name')); // Same project as group
             childItem.set('ExpenseCategory', story.get('c_ExpenseCategory'));
             childItem.set('PlanEstimate', story.get('PlanEstimate'));
 
@@ -144,8 +151,7 @@ Ext.define("SummaryItem", {
             }
 
             //Ext.data.NodeInterface.decorate(child);
-            //child.set('leaf', true);
-            //child.set('children', []);
+            childItem.set('leaf', true);
             children.push(childItem);
         }, this);
         this.set('children', children);
@@ -247,10 +253,18 @@ Ext.define("SummaryItem", {
     // This allows easy use of the children values in grids without needing custom sort
     // and render functions.
     updateChildren: function() {
+        // For some reason the tree grid REMOVES the children after it has processed them??
         var children = this.get('children') || this.childNodes;
         _.forEach(children, function(child) {
+            child.set('Project', this.get('Project'));
+            child.set('PortfolioItem/Deliverable', this.get('PortfolioItem/Deliverable'));
+            child.set('PortfolioItem/Deliverable_FormattedId', this.get('PortfolioItem/Deliverable_FormattedId'));
+            child.set('PortfolioItem/Deliverable_Name', this.get('PortfolioItem/Deliverable_Name'));
+            child.set('PortfolioItem/Deliverable_State', this.set('PortfolioItem/Deliverable_State'));
+            child.set('PortfolioItem/Project', this.get('PortfolioItem/Project'));
             child.set('PortfolioItem/Project_FormattedId', this.get('PortfolioItem/Project_FormattedId'));
             child.set('PortfolioItem/Project_Name', this.get('PortfolioItem/Project_Name'));
+            child.set('PortfolioItem/Initiative', this.get('PortfolioItem/Initiative'));
             child.set('PortfolioItem/Initiative_FormattedId', this.get('PortfolioItem/Initiative_FormattedId'));
             child.set('PortfolioItem/Initiative_Name', this.get('PortfolioItem/Initiative_Name'));
         }, this);
