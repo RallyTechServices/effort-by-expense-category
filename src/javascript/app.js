@@ -19,18 +19,9 @@ Ext.define("CArABU.app.TSApp", {
             pack: 'end',
         },
         items: [{
-            xtype: 'rallydatefield',
-            itemId: Constants.ID.ACCEPTED_START_DATE,
-            fieldLabel: Constants.LABEL.ACCEPTED_START_DATE,
-            stateful: true,
-            stateId: Constants.ID.ACCEPTED_START_DATE
-        }, {
-            xtype: 'rallydatefield',
-            itemId: Constants.ID.ACCEPTED_END_DATE,
-            fieldLabel: Constants.LABEL.ACCEPTED_END_DATE,
-            padding: '0 0 0 20',
-            stateful: true,
-            stateId: Constants.ID.ACCEPTED_END_DATE
+            xtype: 'container',
+            itemId: Constants.ID.ACCEPTED_DATE_RANGE,
+            html: '' // Set from launch
         }, {
             xtype: 'container',
             itemId: 'controlBarPadding',
@@ -63,17 +54,15 @@ Ext.define("CArABU.app.TSApp", {
 
     launch: function() {
         Ext.data.NodeInterface.decorate(SummaryItem);
-        // Get references to the date controls
-        var start = this.down('#' + Constants.ID.ACCEPTED_START_DATE);
-        var end = this.down('#' + Constants.ID.ACCEPTED_END_DATE);
-
-        // Get their current values from their saved state (this happens before app launch is called)
-        this.startDate = start.getValue();
-        this.endDate = end.getValue();
-
-        // Listen for user changes to the dates
-        start.on('change', this.onStartDateChange, this);
-        end.on('change', this.onEndDateChange, this);
+        // Get references to the date range area
+        var dateRange = this.down('#' + Constants.ID.ACCEPTED_DATE_RANGE);
+        this.startDate = this.getSetting(Constants.ID.ACCEPTED_START_DATE);
+        this.endDate = this.getSetting(Constants.ID.ACCEPTED_END_DATE);
+        dateRange.update('<span class="date-range">Accepted Date Range: ' +
+            (this.startDate || "(Not Set)") +
+            ' - ' +
+            (this.endDate || "(Not Set)") +
+            '</span>');
 
         // Add event handler for export button
         this.down('#' + Constants.ID.EXPORT).on('click', this.onExport, this);
@@ -91,20 +80,6 @@ Ext.define("CArABU.app.TSApp", {
                 CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
                 button.setDisabled(false);
             });
-    },
-
-    onStartDateChange: function(datePicker, newDate) {
-        if (this.startDate != newDate) {
-            this.startDate = newDate;
-            this.loadData();
-        }
-    },
-
-    onEndDateChange: function(datePicker, newDate) {
-        if (this.endDate != newDate) {
-            this.endDate = newDate;
-            this.loadData();
-        }
     },
 
     loadData: function() {
@@ -138,9 +113,16 @@ Ext.define("CArABU.app.TSApp", {
                         accumulator[record.get('Project').ObjectID] = planEstimateTotal;
                         return accumulator
                     }, {});
+
+                    // SummaryItem.create() loads
+                    // parent PortfolioItems in the background. Waiting to draw the grid
+                    // until all the PIs have loaded makes the app look broken. Instead,
+                    // render what we have, and the parent PI information will fill in
+                    // as it is loaded.
                     var summaryItems = _.map(store.getGroups(), function(group) {
                         return new SummaryItem(group);
                     });
+
                     this.addSummaryGrid(summaryItems, perTeamPlanEstimateTotals);
                     this.addDetailsGrid(summaryItems);
                     this.setLoading(false);
@@ -304,10 +286,6 @@ Ext.define("CArABU.app.TSApp", {
             }, {
                 text: Constants.LABEL.OWNER,
                 dataIndex: 'Owner_Name',
-                renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'Owner');
-                },
-                _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.ACCEPTED_DATE,
                 dataIndex: 'AcceptedDate'
@@ -373,30 +351,21 @@ Ext.define("CArABU.app.TSApp", {
     },
 
     getSettingsFields: function() {
-        return [];
-    },
-
-    getOptions: function() {
-        var options = [{
-            text: 'About...',
-            handler: this._launchInfo,
-            scope: this
+        return [{
+            xtype: 'rallydatefield',
+            name: Constants.ID.ACCEPTED_START_DATE,
+            fieldLabel: Constants.LABEL.ACCEPTED_START_DATE,
+            labelWidth: 150
+        }, {
+            xtype: 'rallydatefield',
+            name: Constants.ID.ACCEPTED_END_DATE,
+            fieldLabel: Constants.LABEL.ACCEPTED_END_DATE,
+            labelWidth: 150
+        }, {
+            xtype: 'container',
+            itemId: 'padding',
+            height: 150
         }];
-
-        return options;
-    },
-
-    _launchInfo: function() {
-        if (this.about_dialog) { this.about_dialog.destroy(); }
-
-        this.about_dialog = Ext.create('Rally.technicalservices.InfoLink', {
-            showLog: this.getSetting('saveLog'),
-            logger: this.logger
-        });
-    },
-
-    isExternal: function() {
-        return typeof(this.getAppId()) == 'undefined';
     }
 
 });

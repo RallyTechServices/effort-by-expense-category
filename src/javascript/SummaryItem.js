@@ -1,4 +1,4 @@
-/* global Ext _ SummaryItem Deft */
+/* global Ext _ SummaryItem Deft Constants */
 
 /**
  * NOTE: All individual fields needed by the summary and detail grids are placed
@@ -37,24 +37,35 @@ Ext.define("SummaryItem", {
         type: 'auto'
     }, {
         name: 'PortfolioItem/Project_FormattedId',
-        type: 'string'
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
     }, {
         name: 'PortfolioItem/Project_Name',
-        type: 'string'
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
     }, {
         name: 'PortfolioItem/Initiative',
         type: 'auto'
     }, {
         name: 'PortfolioItem/Initiative_FormattedId',
-        type: 'string'
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
     }, {
         name: 'PortfolioItem/Initiative_Name',
-        type: 'string'
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
     }, {
         name: 'Children',
         type: 'auto'
     }],
 
+    /**
+     * Create a SummaryItem and loads parent PortfolioItem information in
+     * the background. Any parent PI data that wasn't part of the group data
+     * has a default value of 'Loading...' (above) and is either cleared when
+     * we know there isn't a PI, or updated with the actual PI data in the
+     * background.
+     */
     constructor: function(group) {
         this.callParent(arguments);
 
@@ -68,19 +79,29 @@ Ext.define("SummaryItem", {
             this.set('Project_Name', project.Name)
         }
 
-        this.loadParentPis(firstItem);
-
         this.set('ExpenseCategory', firstItem.get('c_ExpenseCategory'));
         var groupPlanEstimate = _.reduce(group.children, function(accumulator, story) {
             return accumulator += story.get('PlanEstimate');
         }, 0);
         this.set('PlanEstimate', groupPlanEstimate);
+
         this.annotateChildren();
+
+        this.loadParentPis(firstItem)
+            .then({
+                scope: this,
+                success: function() {
+                    // Re-annotate the children after PI data loaded
+                    this.annotateChildren();
+                    return this;
+                }
+            });
     },
 
     loadParentPis: function(firstItem) {
-        var deliverable = firstItem.get('Deliverable');
+        var deferred = Ext.create('Deft.Deferred');
 
+        var deliverable = firstItem.get('Deliverable');
         if (deliverable) {
             this.set('PortfolioItem/Deliverable', deliverable);
             this.set('PortfolioItem/Deliverable_FormattedId', deliverable.FormattedID);
@@ -92,7 +113,7 @@ Ext.define("SummaryItem", {
             // If this is a child of another story, Deliverable.Parent won't be set
             // (even if that Deliverable has a parent PI). Fetch the full Deliverable
             // to get PortfolioItem/Project information
-            this.loadFullPortfolioItem(deliverable)
+            return this.loadFullPortfolioItem(deliverable)
                 .then({
                     scope: this,
                     success: function(fullDeliverable) {
@@ -104,33 +125,45 @@ Ext.define("SummaryItem", {
                             return this.loadFullPortfolioItem(portfolioItem_Project);
                         }
                         else {
-                            // No parent PortfolioItem/Project
-                            return Ext.create('Deft.Deferred').resolve();
+                            // No parent PortfolioItem/Project, clear the loading indicators for parent PortfolioItems
+                            this.set('PortfolioItem/Project_FormattedId');
+                            this.set('PortfolioItem/Project_Name');
+                            this.set('PortfolioItem/Initiative_FormattedId');
+                            this.set('PortfolioItem/Initiative_Name');
+                            return null;
                         }
                     }
                 })
                 .then({
                     scope: this,
                     success: function(fullPortfolioItemProject) {
-                        var initiative = fullPortfolioItemProject.get('Parent');
-                        if (initiative) {
-                            this.set('PortfolioItem/Initiative', initiative);
-                            this.set('PortfolioItem/Initiative_FormattedId', initiative.FormattedID);
-                            this.set('PortfolioItem/Initiative_Name', initiative.Name);
+                        if (fullPortfolioItemProject) {
+                            var initiative = fullPortfolioItemProject.get('Parent');
+                            if (initiative) {
+                                this.set('PortfolioItem/Initiative', initiative);
+                                this.set('PortfolioItem/Initiative_FormattedId', initiative.FormattedID);
+                                this.set('PortfolioItem/Initiative_Name', initiative.Name);
+                            }
+                            else {
+                                // No parent PortfolioItem/Initiative, clear the loading indicators for parent PortfolioItems
+                                this.set('PortfolioItem/Initiative_FormattedId');
+                                this.set('PortfolioItem/Initiative_Name');
+                                return null;
+                            }
                         }
-                        else {
-                            return Ext.create('Deft.Deferred').resolve();
-                        }
-                    }
-                })
-                .then({
-                    scope: this,
-                    success: function() {
-                        // Update the children with the PI data
-                        this.annotateChildren();
+                        deferred.resolve();
                     }
                 })
         }
+        else {
+            // No deliverable, clear the loading indicators for parent PortfolioItems
+            this.set('PortfolioItem/Project_FormattedId');
+            this.set('PortfolioItem/Project_Name');
+            this.set('PortfolioItem/Initiative_FormattedId');
+            this.set('PortfolioItem/Initiative_Name');
+            deferred.resolve();
+        }
+        return deferred.promise;
     },
 
     loadFullPortfolioItem: function(partialItem) {
