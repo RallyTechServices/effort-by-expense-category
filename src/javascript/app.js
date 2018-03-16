@@ -197,9 +197,21 @@ Ext.define("CArABU.app.TSApp", {
             rootVisible: false,
             columns: [{
                 xtype: 'treecolumn',
+                width: 30,
+                _csvIgnoreRender: true
+            }, {
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
-                _csvIgnoreRender: true
+                renderer: function(value, meta, record) {
+                    // Only show project name for non-leaf
+                    if (record.get('leaf')) {
+                        return ''
+                    }
+                    else {
+                        return value;
+                    }
+                },
+                _csvIgnoreRender: true,
             }, {
                 text: Constants.LABEL.USER_STORY_ID,
                 dataIndex: 'UserStory_FormattedId',
