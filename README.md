@@ -5,8 +5,8 @@
 ![Summary](./images/summary.png "This is an example of the Summary")
 ![Details](./images/details.png "This is an example of the Details")
 
-Load stories accepted within a data range. Group them by their
-Project Name + Feature Name + c_ExpenseCategory value.
+Load stories accepted within a data range configured in the app settings.
+Group them by their Project Name + Feature Name + c_ExpenseCategory value.
 
 Display each group as a row, including data about the parent
 Portfolio Items.  For each group, calculate a `% of Effort` metric which is the

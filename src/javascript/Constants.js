@@ -4,6 +4,7 @@ Ext.define("Constants", {
         ID: {
             ACCEPTED_START_DATE: 'ACCEPTED_START_DATE',
             ACCEPTED_END_DATE: 'ACCEPTED_END_DATE',
+            ACCEPTED_DATE_RANGE: 'ACCEPTED_DATE_RANGE',
             USER_STORY_STORE: 'USER_STORY_STORE',
             SUMMARY_AREA: 'SUMMARY_AREA',
             DETAILS_AREA: 'DETAILS_AREA',
@@ -27,9 +28,12 @@ Ext.define("Constants", {
             SUMMARY_AREA: 'Summary',
             DETAILS_AREA: 'Details',
             USER_STORY_ID: 'User Story',
-            PARENT: 'User Story Parent',
+            USER_STORY_NAME: 'User Story Name',
+            PARENT: 'Epic',
+            PARENT_NAME: 'Epic Name',
             ACCEPTED_DATE: 'Accepted Date',
-            OWNER: 'Owner'
+            OWNER: 'Owner',
+            LOADING: 'Loading...'
         },
         USER_STORY_FIELDS: [
             'ObjectID', 'FormattedID', 'Name', 'AcceptedDate', 'Deliverable', 'c_ExpenseCategory',

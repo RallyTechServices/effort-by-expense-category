@@ -19,3 +19,8 @@
 td.has-error {
     background-color: #ffbdbd !important;
 }
+
+.date-range {
+    font-weight: bold;
+    font-size: medium;
+}
