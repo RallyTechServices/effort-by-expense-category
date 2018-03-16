@@ -120,10 +120,13 @@ Ext.define("CArABU.app.TSApp", {
                     // render what we have, and the parent PI information will fill in
                     // as it is loaded.
                     var summaryItems = _.map(store.getGroups(), function(group) {
-                        return new SummaryItem(group);
+                        var summaryItem = new SummaryItem();
+                        summaryItem.createFromGroup(group);
+                        return summaryItem;
                     });
 
-                    this.addSummaryGrid(summaryItems, perTeamPlanEstimateTotals);
+                    //this.addSummaryGrid(summaryItems, perTeamPlanEstimateTotals);
+                    this.addSummaryTree(summaryItems, perTeamPlanEstimateTotals);
                     this.addDetailsGrid(summaryItems);
                     this.setLoading(false);
                 }
@@ -136,11 +139,17 @@ Ext.define("CArABU.app.TSApp", {
         this.down('#' + Constants.ID.EXPORT).setDisabled(disabled);
     },
 
-    addSummaryGrid: function(data, perTeamPlanEstimateTotals) {
+    addSummaryTree: function(data, perTeamPlanEstimateTotals) {
         var tableArea = this.down('#' + Constants.ID.SUMMARY_AREA);
-        tableArea.removeAll();
-        var store = Ext.create('Rally.data.custom.Store', {
-            data: data,
+        tableArea.removeAll
+        var root = new SummaryItem();
+        Ext.merge(root, {
+            expanded: true,
+        });
+        root.set('children', data);
+        var store = Ext.create('Ext.data.TreeStore', {
+            model: 'SummaryItem',
+            root: root,
             sorters: [{
                 sorterFn: function(a, b) {
                     var groupString = function(summaryItem) {
@@ -164,15 +173,27 @@ Ext.define("CArABU.app.TSApp", {
                 }
             }]
         });
-
         tableArea.add({
-            xtype: 'rallygrid',
+            xtype: 'treepanel',
             store: store,
-            enableEditing: false,
-            showRowActionsColumn: false,
-            columnCfgs: [{
+            cls: 'rally-grid',
+            style: {
+                "border": '1px solid black'
+            },
+            rootVisible: false,
+            columns: [{
+                xtype: 'treecolumn',
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
+            }, {
+                text: Constants.LABEL.USER_STORY_ID,
+                dataIndex: 'UserStory_FormattedId',
+                renderer: function(value, meta, record) {
+                    return Renderers.link(value, meta, record, 'UserStory', false);
+                }
+            }, {
+                text: Constants.LABEL.USER_STORY_NAME,
+                dataIndex: 'UserStory_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'PortfolioItem/Deliverable_FormattedId',
@@ -218,9 +239,96 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Deliverable_State',
                 renderer: Renderers.piDeliverableState,
                 _csvIgnoreRender: true
-            }]
-        });
+            }],
+        })
     },
+    /*
+        addSummaryGrid: function(data, perTeamPlanEstimateTotals) {
+            var tableArea = this.down('#' + Constants.ID.SUMMARY_AREA);
+            tableArea.removeAll();
+            var store = Ext.create('Rally.data.custom.Store', {
+                data: data,
+                sorters: [{
+                    sorterFn: function(a, b) {
+                        var groupString = function(summaryItem) {
+                            return [
+                                summaryItem.get('Project_Name'),
+                                summaryItem.get('PortfolioItem/Deliverable_FormattedId'),
+                                summaryItem.get('ExpenseCategory')
+                            ].join(':');
+                        }
+                        var aStr = groupString(a);
+                        var bStr = groupString(b);
+                        if (aStr < bStr) {
+                            return -1;
+                        }
+                        else if (aStr > bStr) {
+                            return 1;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                }]
+            });
+
+            tableArea.add({
+                xtype: 'rallygrid',
+                store: store,
+                enableEditing: false,
+                showRowActionsColumn: false,
+                columnCfgs: [{
+                    text: Constants.LABEL.TEAM_NAME,
+                    dataIndex: 'Project_Name',
+                }, {
+                    text: Constants.LABEL.DELIVERABLE_ID,
+                    dataIndex: 'PortfolioItem/Deliverable_FormattedId',
+                    renderer: function(value, meta, record) {
+                        return Renderers.link(value, meta, record, 'PortfolioItem/Deliverable');
+                    },
+                    _csvIgnoreRender: true
+                }, {
+                    text: Constants.LABEL.EXPENSE_CATEGORY,
+                    dataIndex: 'ExpenseCategory'
+                }, {
+                    text: Constants.LABEL.PCT_EFFORT,
+                    dataIndex: 'PlanEstimate',
+                    renderer: function(value, meta, record) {
+                        var teamPlanEstimateTotal = perTeamPlanEstimateTotals[record.get('Project').ObjectID]
+                        return (value / teamPlanEstimateTotal * 100).toFixed(2) + '%';
+                    }
+                }, {
+                    text: Constants.LABEL.DELIVERABLE_NAME,
+                    dataIndex: 'PortfolioItem/Deliverable_Name'
+                }, {
+                    text: Constants.LABEL.PI_PROJECT_ID,
+                    dataIndex: 'PortfolioItem/Project_FormattedId',
+                    renderer: function(value, meta, record) {
+                        return Renderers.link(value, meta, record, 'PortfolioItem/Project');
+                    },
+                    _csvIgnoreRender: true
+                }, {
+                    text: Constants.LABEL.PI_PROJECT_NAME,
+                    dataIndex: 'PortfolioItem/Project_Name',
+                }, {
+                    text: Constants.LABEL.INITIATIVE_ID,
+                    dataIndex: 'PortfolioItem/Initiative_FormattedId',
+                    renderer: function(value, meta, record) {
+                        return Renderers.link(value, meta, record, 'PortfolioItem/Initiative');
+                    },
+                    _csvIgnoreRender: true
+                }, {
+                    text: Constants.LABEL.INITIATIVE_NAME,
+                    dataIndex: 'PortfolioItem/Initiative_Name'
+                }, {
+                    text: Constants.LABEL.DELIVERABLE_STATE,
+                    dataIndex: 'PortfolioItem/Deliverable_State',
+                    renderer: Renderers.piDeliverableState,
+                    _csvIgnoreRender: true
+                }]
+            });
+        },
+        */
 
     addDetailsGrid: function(summaryItems) {
         var tableArea = this.down('#' + Constants.ID.DETAILS_AREA);
@@ -231,7 +339,7 @@ Ext.define("CArABU.app.TSApp", {
         var summaryItemFields = SummaryItem.getFields();
         var details = [];
         _.forEach(summaryItems, function(summaryItem) {
-            _.forEach(summaryItem.get('Children'), function(child) {
+            _.forEach(summaryItem.get('children'), function(child) {
                 details.push(child);
             });
         });
@@ -241,11 +349,10 @@ Ext.define("CArABU.app.TSApp", {
             sorters: [{
                 sorterFn: function(a, b) {
                     var groupString = function(story) {
-                        var summaryItem = story.get('SummaryItem');
                         return [
-                            summaryItem.get('Project_Name'),
-                            summaryItem.get('PortfolioItem/Deliverable_FormattedId'),
-                            summaryItem.get('ExpenseCategory')
+                            story.get('Project_Name'),
+                            story.get('PortfolioItem/Deliverable_FormattedId'),
+                            story.get('ExpenseCategory')
                         ].join(':');
                     }
                     var aStr = groupString(a);
@@ -269,26 +376,26 @@ Ext.define("CArABU.app.TSApp", {
             showRowActionsColumn: false,
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
-                dataIndex: 'SummaryItem_Project_Name',
+                dataIndex: 'Project_Name',
             }, {
                 text: Constants.LABEL.USER_STORY_ID,
-                dataIndex: 'FormattedID',
+                dataIndex: 'UserStory_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, null);
+                    return Renderers.link(value, meta, record, 'UserStory');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.USER_STORY_NAME,
-                dataIndex: 'Name',
+                dataIndex: 'UserStory_Name',
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
-                dataIndex: 'c_ExpenseCategory'
+                dataIndex: 'ExpenseCategory'
             }, {
                 text: Constants.LABEL.OWNER,
                 dataIndex: 'Owner_Name',
             }, {
                 text: Constants.LABEL.ACCEPTED_DATE,
-                dataIndex: 'AcceptedDate'
+                dataIndex: 'UserStory_AcceptedDate'
             }, {
                 text: Constants.LABEL.PARENT,
                 dataIndex: 'Parent_FormattedId',
@@ -301,37 +408,37 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'Parent_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId',
+                dataIndex: 'PortfolioItem/Deliverable_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Deliverable');
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Deliverable');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_Name'
+                dataIndex: 'PortfolioItem/Deliverable_Name'
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId',
+                dataIndex: 'PortfolioItem/Project_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Project');
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Project');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
-                dataIndex: 'SummaryItem_PortfolioItem/Project_Name'
+                dataIndex: 'PortfolioItem/Project_Name'
             }, {
                 text: Constants.LABEL.INITIATIVE_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Initiative_FormattedId',
+                dataIndex: 'PortfolioItem/Initiative_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Initiative');
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Initiative');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
-                dataIndex: 'SummaryItem_PortfolioItem/Initiative_Name'
+                dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State',
+                dataIndex: 'PortfolioItem/Deliverable_State',
                 renderer: Renderers.piDeliverableState,
                 _csvIgnoreRender: true
             }]
