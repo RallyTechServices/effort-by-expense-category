@@ -12,8 +12,9 @@ Ext.define("Constants", {
             TAB_PANEL: 'TAB_PANEL',
         },
         LABEL: {
-            ACCEPTED_START_DATE: "Start Accepted Date",
-            ACCEPTED_END_DATE: "End Accepted Date",
+            ACCEPTED_START_DATE: "Start Story Accepted Date",
+            ACCEPTED_END_DATE: "End Story Accepted Date",
+            ACCEPTED_DATE_RANGE: "Story Accepted Date Range",
             TEAM_NAME: 'Team',
             DELIVERABLE_ID: 'Deliverable',
             EXPENSE_CATEGORY: 'Expense Category',
@@ -33,7 +34,8 @@ Ext.define("Constants", {
             PARENT_NAME: 'Epic Name',
             ACCEPTED_DATE: 'Accepted Date',
             OWNER: 'Owner',
-            LOADING: 'Loading...'
+            LOADING: 'Loading...',
+            NOT_SET: '(Not Set)',
         },
         USER_STORY_FIELDS: [
             'ObjectID', 'FormattedID', 'Name', 'AcceptedDate', 'Deliverable', 'c_ExpenseCategory',

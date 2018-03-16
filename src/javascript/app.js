@@ -58,10 +58,10 @@ Ext.define("CArABU.app.TSApp", {
         var dateRange = this.down('#' + Constants.ID.ACCEPTED_DATE_RANGE);
         this.startDate = this.getSetting(Constants.ID.ACCEPTED_START_DATE);
         this.endDate = this.getSetting(Constants.ID.ACCEPTED_END_DATE);
-        dateRange.update('<span class="date-range">Accepted Date Range: ' +
-            (this.startDate || "(Not Set)") +
+        dateRange.update('<span class="date-range">' + Constants.LABEL.ACCEPTED_DATE_RANGE + ': ' +
+            (this.startDate || Constants.LABEL.NOT_SET) +
             ' - ' +
-            (this.endDate || "(Not Set)") +
+            (this.endDate || Constants.LABEL.NOT_SET) +
             '</span>');
 
         // Add event handler for export button
