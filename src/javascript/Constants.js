@@ -36,6 +36,7 @@ Ext.define("Constants", {
             OWNER: 'Owner',
             LOADING: 'Loading...',
             NOT_SET: '(Not Set)',
+            PLAN_ESTIMATE: 'Plan Estimate'
         },
         USER_STORY_FIELDS: [
             'ObjectID', 'FormattedID', 'Name', 'AcceptedDate', 'Deliverable', 'c_ExpenseCategory',

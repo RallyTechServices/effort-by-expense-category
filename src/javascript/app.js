@@ -74,12 +74,26 @@ Ext.define("CArABU.app.TSApp", {
         button.setDisabled(true);
         // Export the data from the grid on the active tab. Use the tab title as the export filename.
         var activeTab = this.down('#' + Constants.ID.TAB_PANEL).getActiveTab();
-        var activeGrid = activeTab.down('rallygrid');
-        CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, activeGrid)
-            .then(function(csv) {
-                CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
-                button.setDisabled(false);
-            });
+        var activeGrid = activeTab.down('tablepanel');
+        if (activeTab.itemId === Constants.ID.SUMMARY_AREA) {
+            var csv = [];
+            var headers = CArABU.technicalservices.FileUtilities._getHeadersFromGrid(activeGrid);
+            csv.push('"' + headers.join('","') + '"');
+            var store = activeGrid.getStore();
+            activeGrid.getRootNode().eachChild(function(child) {
+                csv.push(CArABU.technicalservices.FileUtilities._getCSVFromRecord(child, activeGrid, store));
+            }, this);
+            csv = csv.join('\r\n');
+            CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
+            button.setDisabled(false);
+        }
+        else {
+            CArABU.technicalservices.FileUtilities.getCSVFromGrid(this, activeGrid)
+                .then(function(csv) {
+                    CArABU.technicalservices.FileUtilities.saveCSVToFile(csv, activeTab.title + '.csv');
+                    button.setDisabled(false);
+                });
+        }
     },
 
     loadData: function() {
@@ -120,10 +134,13 @@ Ext.define("CArABU.app.TSApp", {
                     // render what we have, and the parent PI information will fill in
                     // as it is loaded.
                     var summaryItems = _.map(store.getGroups(), function(group) {
-                        return new SummaryItem(group);
+                        var summaryItem = new SummaryItem();
+                        summaryItem.createFromGroup(group);
+                        return summaryItem;
                     });
 
-                    this.addSummaryGrid(summaryItems, perTeamPlanEstimateTotals);
+                    //this.addSummaryGrid(summaryItems, perTeamPlanEstimateTotals);
+                    this.addSummaryTree(summaryItems, perTeamPlanEstimateTotals);
                     this.addDetailsGrid(summaryItems);
                     this.setLoading(false);
                 }
@@ -136,11 +153,17 @@ Ext.define("CArABU.app.TSApp", {
         this.down('#' + Constants.ID.EXPORT).setDisabled(disabled);
     },
 
-    addSummaryGrid: function(data, perTeamPlanEstimateTotals) {
+    addSummaryTree: function(data, perTeamPlanEstimateTotals) {
         var tableArea = this.down('#' + Constants.ID.SUMMARY_AREA);
-        tableArea.removeAll();
-        var store = Ext.create('Rally.data.custom.Store', {
-            data: data,
+        tableArea.removeAll
+        var root = new SummaryItem();
+        Ext.merge(root, {
+            expanded: true,
+        });
+        root.set('children', data);
+        var store = Ext.create('Ext.data.TreeStore', {
+            model: 'SummaryItem',
+            root: root,
             sorters: [{
                 sorterFn: function(a, b) {
                     var groupString = function(summaryItem) {
@@ -164,15 +187,43 @@ Ext.define("CArABU.app.TSApp", {
                 }
             }]
         });
-
         tableArea.add({
-            xtype: 'rallygrid',
+            xtype: 'treepanel',
             store: store,
-            enableEditing: false,
-            showRowActionsColumn: false,
-            columnCfgs: [{
+            cls: 'rally-grid',
+            minWidth: 1280, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
+            rootVisible: false,
+            columns: [{
+                xtype: 'treecolumn',
+                text: undefined,
+                width: 30,
+                _csvIgnoreRender: true
+            }, {
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
+                renderer: function(value, meta, record) {
+                    // Only show project name for non-leaf
+                    if (record.get('leaf')) {
+                        return ''
+                    }
+                    else {
+                        return value;
+                    }
+                },
+                _csvIgnoreRender: true,
+            }, {
+                text: Constants.LABEL.USER_STORY_ID,
+                dataIndex: 'UserStory_FormattedId',
+                renderer: function(value, meta, record) {
+                    if (value == '--') {
+                        return '( ' + record.childNodes.length + ' )';
+                    }
+                    return Renderers.link(value, meta, record, 'UserStory', false);
+                },
+                _csvIgnoreRender: true
+            }, {
+                text: Constants.LABEL.USER_STORY_NAME,
+                dataIndex: 'UserStory_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
                 dataIndex: 'PortfolioItem/Deliverable_FormattedId',
@@ -218,7 +269,7 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Deliverable_State',
                 renderer: Renderers.piDeliverableState,
                 _csvIgnoreRender: true
-            }]
+            }],
         });
     },
 
@@ -231,7 +282,9 @@ Ext.define("CArABU.app.TSApp", {
         var summaryItemFields = SummaryItem.getFields();
         var details = [];
         _.forEach(summaryItems, function(summaryItem) {
-            _.forEach(summaryItem.get('Children'), function(child) {
+            // For some reason the tree grid REMOVES the children after it has processed them??
+            var children = summaryItem.get('children') || summaryItem.childNodes;
+            _.forEach(children, function(child) {
                 details.push(child);
             });
         });
@@ -241,11 +294,10 @@ Ext.define("CArABU.app.TSApp", {
             sorters: [{
                 sorterFn: function(a, b) {
                     var groupString = function(story) {
-                        var summaryItem = story.get('SummaryItem');
                         return [
-                            summaryItem.get('Project_Name'),
-                            summaryItem.get('PortfolioItem/Deliverable_FormattedId'),
-                            summaryItem.get('ExpenseCategory')
+                            story.get('Project_Name'),
+                            story.get('PortfolioItem/Deliverable_FormattedId'),
+                            story.get('ExpenseCategory')
                         ].join(':');
                     }
                     var aStr = groupString(a);
@@ -267,28 +319,32 @@ Ext.define("CArABU.app.TSApp", {
             store: store,
             enableEditing: false,
             showRowActionsColumn: false,
+            minWidth: 1700, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
-                dataIndex: 'SummaryItem_Project_Name',
+                dataIndex: 'Project_Name',
             }, {
                 text: Constants.LABEL.USER_STORY_ID,
-                dataIndex: 'FormattedID',
+                dataIndex: 'UserStory_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, null);
+                    return Renderers.link(value, meta, record, 'UserStory');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.USER_STORY_NAME,
-                dataIndex: 'Name',
+                dataIndex: 'UserStory_Name',
             }, {
                 text: Constants.LABEL.EXPENSE_CATEGORY,
-                dataIndex: 'c_ExpenseCategory'
+                dataIndex: 'ExpenseCategory'
+            }, {
+                text: Constants.LABEL.PLAN_ESTIMATE,
+                dataIndex: 'PlanEstimate',
             }, {
                 text: Constants.LABEL.OWNER,
                 dataIndex: 'Owner_Name',
             }, {
                 text: Constants.LABEL.ACCEPTED_DATE,
-                dataIndex: 'AcceptedDate'
+                dataIndex: 'UserStory_AcceptedDate'
             }, {
                 text: Constants.LABEL.PARENT,
                 dataIndex: 'Parent_FormattedId',
@@ -301,37 +357,37 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'Parent_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_FormattedId',
+                dataIndex: 'PortfolioItem/Deliverable_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Deliverable');
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Deliverable');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.DELIVERABLE_NAME,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_Name'
+                dataIndex: 'PortfolioItem/Deliverable_Name'
             }, {
                 text: Constants.LABEL.PI_PROJECT_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Project_FormattedId',
+                dataIndex: 'PortfolioItem/Project_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Project');
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Project');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.PI_PROJECT_NAME,
-                dataIndex: 'SummaryItem_PortfolioItem/Project_Name'
+                dataIndex: 'PortfolioItem/Project_Name'
             }, {
                 text: Constants.LABEL.INITIATIVE_ID,
-                dataIndex: 'SummaryItem_PortfolioItem/Initiative_FormattedId',
+                dataIndex: 'PortfolioItem/Initiative_FormattedId',
                 renderer: function(value, meta, record) {
-                    return Renderers.link(value, meta, record, 'SummaryItem_PortfolioItem/Initiative');
+                    return Renderers.link(value, meta, record, 'PortfolioItem/Initiative');
                 },
                 _csvIgnoreRender: true
             }, {
                 text: Constants.LABEL.INITIATIVE_NAME,
-                dataIndex: 'SummaryItem_PortfolioItem/Initiative_Name'
+                dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'SummaryItem_PortfolioItem/Deliverable_State',
+                dataIndex: 'PortfolioItem/Deliverable_State',
                 renderer: Renderers.piDeliverableState,
                 _csvIgnoreRender: true
             }]
