@@ -191,6 +191,7 @@ Ext.define("CArABU.app.TSApp", {
             xtype: 'treepanel',
             store: store,
             cls: 'rally-grid',
+            minWidth: 1280, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
             /*style: {
                 "border": '1px solid black'
             },*/
@@ -271,7 +272,7 @@ Ext.define("CArABU.app.TSApp", {
                 renderer: Renderers.piDeliverableState,
                 _csvIgnoreRender: true
             }],
-        })
+        });
     },
     /*
         addSummaryGrid: function(data, perTeamPlanEstimateTotals) {
@@ -407,6 +408,7 @@ Ext.define("CArABU.app.TSApp", {
             store: store,
             enableEditing: false,
             showRowActionsColumn: false,
+            minWidth: 1700, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
