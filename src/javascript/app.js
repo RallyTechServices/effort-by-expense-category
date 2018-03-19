@@ -192,6 +192,7 @@ Ext.define("CArABU.app.TSApp", {
             store: store,
             cls: 'rally-grid',
             minWidth: 1280, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
+            padding: '0 0 20 0',
             rootVisible: false,
             columns: [{
                 xtype: 'treecolumn',
