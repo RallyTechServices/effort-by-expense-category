@@ -192,12 +192,10 @@ Ext.define("CArABU.app.TSApp", {
             store: store,
             cls: 'rally-grid',
             minWidth: 1280, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
-            /*style: {
-                "border": '1px solid black'
-            },*/
             rootVisible: false,
             columns: [{
                 xtype: 'treecolumn',
+                text: undefined,
                 width: 30,
                 _csvIgnoreRender: true
             }, {
@@ -274,93 +272,6 @@ Ext.define("CArABU.app.TSApp", {
             }],
         });
     },
-    /*
-        addSummaryGrid: function(data, perTeamPlanEstimateTotals) {
-            var tableArea = this.down('#' + Constants.ID.SUMMARY_AREA);
-            tableArea.removeAll();
-            var store = Ext.create('Rally.data.custom.Store', {
-                data: data,
-                sorters: [{
-                    sorterFn: function(a, b) {
-                        var groupString = function(summaryItem) {
-                            return [
-                                summaryItem.get('Project_Name'),
-                                summaryItem.get('PortfolioItem/Deliverable_FormattedId'),
-                                summaryItem.get('ExpenseCategory')
-                            ].join(':');
-                        }
-                        var aStr = groupString(a);
-                        var bStr = groupString(b);
-                        if (aStr < bStr) {
-                            return -1;
-                        }
-                        else if (aStr > bStr) {
-                            return 1;
-                        }
-                        else {
-                            return 0;
-                        }
-                    }
-                }]
-            });
-
-            tableArea.add({
-                xtype: 'rallygrid',
-                store: store,
-                enableEditing: false,
-                showRowActionsColumn: false,
-                columnCfgs: [{
-                    text: Constants.LABEL.TEAM_NAME,
-                    dataIndex: 'Project_Name',
-                }, {
-                    text: Constants.LABEL.DELIVERABLE_ID,
-                    dataIndex: 'PortfolioItem/Deliverable_FormattedId',
-                    renderer: function(value, meta, record) {
-                        return Renderers.link(value, meta, record, 'PortfolioItem/Deliverable');
-                    },
-                    _csvIgnoreRender: true
-                }, {
-                    text: Constants.LABEL.EXPENSE_CATEGORY,
-                    dataIndex: 'ExpenseCategory'
-                }, {
-                    text: Constants.LABEL.PCT_EFFORT,
-                    dataIndex: 'PlanEstimate',
-                    renderer: function(value, meta, record) {
-                        var teamPlanEstimateTotal = perTeamPlanEstimateTotals[record.get('Project').ObjectID]
-                        return (value / teamPlanEstimateTotal * 100).toFixed(2) + '%';
-                    }
-                }, {
-                    text: Constants.LABEL.DELIVERABLE_NAME,
-                    dataIndex: 'PortfolioItem/Deliverable_Name'
-                }, {
-                    text: Constants.LABEL.PI_PROJECT_ID,
-                    dataIndex: 'PortfolioItem/Project_FormattedId',
-                    renderer: function(value, meta, record) {
-                        return Renderers.link(value, meta, record, 'PortfolioItem/Project');
-                    },
-                    _csvIgnoreRender: true
-                }, {
-                    text: Constants.LABEL.PI_PROJECT_NAME,
-                    dataIndex: 'PortfolioItem/Project_Name',
-                }, {
-                    text: Constants.LABEL.INITIATIVE_ID,
-                    dataIndex: 'PortfolioItem/Initiative_FormattedId',
-                    renderer: function(value, meta, record) {
-                        return Renderers.link(value, meta, record, 'PortfolioItem/Initiative');
-                    },
-                    _csvIgnoreRender: true
-                }, {
-                    text: Constants.LABEL.INITIATIVE_NAME,
-                    dataIndex: 'PortfolioItem/Initiative_Name'
-                }, {
-                    text: Constants.LABEL.DELIVERABLE_STATE,
-                    dataIndex: 'PortfolioItem/Deliverable_State',
-                    renderer: Renderers.piDeliverableState,
-                    _csvIgnoreRender: true
-                }]
-            });
-        },
-        */
 
     addDetailsGrid: function(summaryItems) {
         var tableArea = this.down('#' + Constants.ID.DETAILS_AREA);

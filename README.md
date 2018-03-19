@@ -20,9 +20,10 @@ For example, if there are two stories in Project `Foo`, both with a PlanEstimate
 in the table, each with a `% of Effort` value of `50%`.
 
 The full list of user stories accepted within the date range is available on the `Details`
-tab.
+tab, or by expanding each row in the `Summary` tab.
 
-Data from both tables can be exported in CSV format.
+Data from both tables can be exported in CSV format, however the summary table does NOT
+export the expanded row story information.
 
 Finally, all stories are expected to be assigned to a PortfolioItem/Deliverable,
 PortfolioItem/Project and PortfolioItem/Initiative. Also, the Deliverable state must NOT
