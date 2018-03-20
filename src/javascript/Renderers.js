@@ -17,7 +17,7 @@ Ext.define('Renderers', {
          * set to false to include the has-error class that indicates an eror value (default true)
          */
         link: function(value, meta, record, path, showError) {
-            var result = '';
+            var result = value;
             var item = record;
             if (path && record) {
                 item = record.get(path);
@@ -37,11 +37,11 @@ Ext.define('Renderers', {
             return result;
         },
 
-        piDeliverableState: function(value, meta, record) {
-            // Show a blank value UNLESS the state is done. If so, show an error icon
-            // and mark the cell so a CSS rule can highlight the entire row
+        piDeliverableIsClosed: function(value, meta, record) {
+            // Show an icon if deliverable is closed and mark the cell so a CSS rule can highlight the entire row.
+            // Otherwise, show blank
             var result = '';
-            if (value == 'Done') {
+            if (value == true) {
                 result = '<span class="icon-ok icon-2x"><span>';
                 meta.tdCls = 'has-error';
             }
