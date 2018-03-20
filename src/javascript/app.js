@@ -35,15 +35,16 @@ Ext.define("CArABU.app.TSApp", {
     }, {
         xtype: 'tabpanel',
         flex: 1,
-        autoScroll: true,
         itemId: Constants.ID.TAB_PANEL,
         plain: true,
         items: [{
             xtype: 'container',
+            autoScroll: true,
             title: Constants.LABEL.SUMMARY_AREA,
             itemId: Constants.ID.SUMMARY_AREA,
         }, {
             xtype: 'container',
+            overflowY: 'scroll',
             title: Constants.LABEL.DETAILS_AREA,
             itemId: Constants.ID.DETAILS_AREA,
         }]
@@ -267,8 +268,8 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'PortfolioItem/Deliverable_State',
-                renderer: Renderers.piDeliverableState,
+                dataIndex: 'PortfolioItem/Deliverable_IsClosed',
+                renderer: Renderers.piDeliverableIsClosed,
                 _csvIgnoreRender: true
             }],
         });
@@ -320,7 +321,8 @@ Ext.define("CArABU.app.TSApp", {
             store: store,
             enableEditing: false,
             showRowActionsColumn: false,
-            minWidth: 1700, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
+            autoScroll: true,
+            //minWidth: 1700, // TODO (tj) workaround because horizontal scrolling doesn't show all columns
             columnCfgs: [{
                 text: Constants.LABEL.TEAM_NAME,
                 dataIndex: 'Project_Name',
@@ -388,8 +390,8 @@ Ext.define("CArABU.app.TSApp", {
                 dataIndex: 'PortfolioItem/Initiative_Name'
             }, {
                 text: Constants.LABEL.DELIVERABLE_STATE,
-                dataIndex: 'PortfolioItem/Deliverable_State',
-                renderer: Renderers.piDeliverableState,
+                dataIndex: 'PortfolioItem/Deliverable_IsClosed',
+                renderer: Renderers.piDeliverableIsClosed,
                 _csvIgnoreRender: true
             }]
         });

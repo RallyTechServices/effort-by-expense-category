@@ -9,81 +9,82 @@
 Ext.define("SummaryItem", {
     extend: 'Ext.data.Model',
     fields: [{
-            name: 'Project',
-            type: 'auto'
-        }, {
-            name: 'UserStory',
-            type: 'auto'
-        }, {
-            name: 'UserStory_FormattedId',
-            type: 'string',
-            defaultValue: '--'
-        }, {
-            name: 'UserStory_Name',
-            type: 'string',
-            defaultValue: '--'
-        }, {
-            name: 'UserStory_AcceptedDate',
-            type: 'string',
-        }, {
-            name: 'Parent_FormattedId',
-            type: 'string'
-        }, {
-            name: 'Parent_Name',
-            type: 'string'
-        }, {
-            name: 'Owner_Name',
-            type: 'string'
-        }, {
-            name: 'Project_Name',
-            type: 'string'
-        }, {
-            name: 'PortfolioItem/Deliverable',
-            type: 'auto'
-        }, {
-            name: 'PortfolioItem/Deliverable_FormattedId',
-            type: 'string'
-        }, {
-            name: 'PortfolioItem/Deliverable_Name',
-            type: 'string'
-        }, {
-            name: 'PortfolioItem/Deliverable_State',
-            type: 'string'
-        }, {
-            name: 'ExpenseCategory',
-            type: 'string'
-        }, {
-            name: 'PlanEstimate',
-            type: 'float'
-        }, {
-            name: 'PortfolioItem/Project',
-            type: 'auto'
-        }, {
-            name: 'PortfolioItem/Project_FormattedId',
-            type: 'string',
-            defaultValue: Constants.LABEL.LOADING
-        }, {
-            name: 'PortfolioItem/Project_Name',
-            type: 'string',
-            defaultValue: Constants.LABEL.LOADING
-        }, {
-            name: 'PortfolioItem/Initiative',
-            type: 'auto'
-        }, {
-            name: 'PortfolioItem/Initiative_FormattedId',
-            type: 'string',
-            defaultValue: Constants.LABEL.LOADING
-        }, {
-            name: 'PortfolioItem/Initiative_Name',
-            type: 'string',
-            defaultValue: Constants.LABEL.LOADING
-        },
-        {
-            name: 'children',
-            type: 'auto',
-            defaultValue: []
-        }
-    ],
+        name: 'Project',
+        type: 'auto'
+    }, {
+        name: 'UserStory',
+        type: 'auto'
+    }, {
+        name: 'UserStory_FormattedId',
+        type: 'string',
+        defaultValue: '--'
+    }, {
+        name: 'UserStory_Name',
+        type: 'string',
+        defaultValue: '--'
+    }, {
+        name: 'UserStory_AcceptedDate',
+        type: 'string',
+    }, {
+        name: 'Parent',
+        type: 'auto',
+    }, {
+        name: 'Parent_FormattedId',
+        type: 'string'
+    }, {
+        name: 'Parent_Name',
+        type: 'string'
+    }, {
+        name: 'Owner_Name',
+        type: 'string'
+    }, {
+        name: 'Project_Name',
+        type: 'string'
+    }, {
+        name: 'PortfolioItem/Deliverable',
+        type: 'auto'
+    }, {
+        name: 'PortfolioItem/Deliverable_FormattedId',
+        type: 'string'
+    }, {
+        name: 'PortfolioItem/Deliverable_Name',
+        type: 'string'
+    }, {
+        name: 'PortfolioItem/Deliverable_IsClosed',
+        type: 'boolean'
+    }, {
+        name: 'ExpenseCategory',
+        type: 'string'
+    }, {
+        name: 'PlanEstimate',
+        type: 'float'
+    }, {
+        name: 'PortfolioItem/Project',
+        type: 'auto'
+    }, {
+        name: 'PortfolioItem/Project_FormattedId',
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
+    }, {
+        name: 'PortfolioItem/Project_Name',
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
+    }, {
+        name: 'PortfolioItem/Initiative',
+        type: 'auto'
+    }, {
+        name: 'PortfolioItem/Initiative_FormattedId',
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
+    }, {
+        name: 'PortfolioItem/Initiative_Name',
+        type: 'string',
+        defaultValue: Constants.LABEL.LOADING
+    }, {
+        name: 'children',
+        type: 'auto',
+        defaultValue: []
+    }],
 
     /**
      * Create a SummaryItem and loads parent PortfolioItem information in
@@ -142,6 +143,7 @@ Ext.define("SummaryItem", {
 
             var parent = story.get('Parent');
             if (parent) {
+                childItem.set('Parent', parent);
                 childItem.set('Parent_FormattedId', parent.FormattedID);
                 childItem.set('Parent_Name', parent.Name);
             }
@@ -166,7 +168,7 @@ Ext.define("SummaryItem", {
             this.set('PortfolioItem/Deliverable_FormattedId', deliverable.FormattedID);
             this.set('PortfolioItem/Deliverable_Name', deliverable.Name);
             if (deliverable.State) {
-                this.set('PortfolioItem/Deliverable_State', deliverable.State.Name);
+                this.set('PortfolioItem/Deliverable_IsClosed', deliverable.State.Name === 'Done');
             }
 
             // If this is a child of another story, Deliverable.Parent won't be set
@@ -260,7 +262,7 @@ Ext.define("SummaryItem", {
             child.set('PortfolioItem/Deliverable', this.get('PortfolioItem/Deliverable'));
             child.set('PortfolioItem/Deliverable_FormattedId', this.get('PortfolioItem/Deliverable_FormattedId'));
             child.set('PortfolioItem/Deliverable_Name', this.get('PortfolioItem/Deliverable_Name'));
-            child.set('PortfolioItem/Deliverable_State', this.set('PortfolioItem/Deliverable_State'));
+            child.set('PortfolioItem/Deliverable_IsClosed', this.get('PortfolioItem/Deliverable_IsClosed'));
             child.set('PortfolioItem/Project', this.get('PortfolioItem/Project'));
             child.set('PortfolioItem/Project_FormattedId', this.get('PortfolioItem/Project_FormattedId'));
             child.set('PortfolioItem/Project_Name', this.get('PortfolioItem/Project_Name'));
