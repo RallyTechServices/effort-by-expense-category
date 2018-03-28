@@ -114,6 +114,10 @@ Ext.define("CArABU.app.TSApp", {
                         property: 'AcceptedDate',
                         operator: '<=',
                         value: this.endDate
+                    },
+                    {
+                        property: 'DirectChildrenCount',
+                        value: 0
                     }
                 ],
                 limit: Infinity,
