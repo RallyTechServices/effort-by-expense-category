@@ -1,5 +1,5 @@
 /* global Ext Deft TSUtilities CArABU Constants SummaryItem _ Rally Renderers */
-Ext.define("CArABU.app.TSApp", {
+Ext.define("effort-by-expense-category", {
     extend: 'Rally.app.App',
     componentCls: 'app',
     defaults: { margin: 10 },
@@ -108,12 +108,12 @@ Ext.define("CArABU.app.TSApp", {
                 filters: [{
                         property: 'AcceptedDate',
                         operator: '>=',
-                        value: this.startDate
+                        value: new Date(this.startDate).toISOString()
                     },
                     {
                         property: 'AcceptedDate',
                         operator: '<=',
-                        value: this.endDate
+                        value: new Date(this.endDate).toISOString()
                     },
                     {
                         property: 'DirectChildrenCount',
